@@ -1,13 +1,12 @@
 #timeline {
 	--widths: 15% 85%;
-	padding: 1vh;
 }
 #keys {
 	width: 100%;
-	height: calc(100% - 2vh);
+	height: calc(100% - 0vh);
 	
 	position: relative;
-	top: 2vh;
+	top: 0vh;
 
 	display: grid;
 	grid-template-columns: var(--widths);
@@ -53,6 +52,14 @@
 	display: flex;
 	justify-content: space-between;
 	flex-direction: row;
+}
+#labels>p {
+	padding: 1vh 1vh;
+	margin: 0;
+	background-color: var(--gray00);
+}
+#labels>p:nth-child(even) {
+	background-color: var(--gray150);
 }
 
 
