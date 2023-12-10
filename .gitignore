@@ -1,2 +1,4 @@
 .gitignore
 run.exe
+.dockerignore
+*.swp

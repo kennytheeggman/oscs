@@ -1,0 +1,58 @@
+#timeline {
+	--widths: 15% 85%;
+	padding: 1vh;
+}
+#keys {
+	width: 100%;
+	height: calc(100% - 2vh);
+	
+	position: relative;
+	top: 2vh;
+
+	display: grid;
+	grid-template-columns: var(--widths);
+
+	overflow-y: scroll;
+}
+#labels {
+	grid-column-start: 1;
+	grid-column-end: 2;
+}
+#canvas-wrapper {
+	grid-column-start: 2;
+	grid-column-end: 3;
+	overflow-x: scroll;
+	overflow-y: hidden;
+}
+
+#canvas-wrapper::-webkit-scrollbar {
+	position: fixed;
+}
+#axis {
+	width: 100%;
+	height: 100%;
+	display: grid;
+	grid-template-columns: var(--widths);
+}
+#scrollbar-wrapper {
+	grid-column-start: 2;
+	grid-column-end: 3;
+
+	position: relative;
+	top: 0;
+	
+	overflow-x: scroll;
+	overflow-y: hidden;
+}
+#scrollbar {
+	min-width: 2000px;
+	height: 0px;
+}
+#timings {
+	width: 2000px;
+	display: flex;
+	justify-content: space-between;
+	flex-direction: row;
+}
+
+

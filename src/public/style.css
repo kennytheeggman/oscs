@@ -1,0 +1,70 @@
+:root {
+	--primary: #81d4fa;
+	--gray00: #ffffff;	/* primary white */
+	--gray100: #f9fbff;
+	--gray150: #f4f6fb;	/* secondary white */
+	--gray200: #eef1f6;
+	--gray300: #e1e5ee;
+	--gray400: #767b91;
+	--gray500: #4f546c; 	/* text color */
+	--gray600: #2a324b;
+	--gray700: #161d34;
+	--yellow: #fff0c2; 	/* yellow background color */
+	--yellow-font: #a68b00;
+	--red: #ffcdd2; 	/* red background color */
+	--red-font: #c62828;
+	--green: #c8e6c9; 	/* green background color */
+	--green-font: #388e3c;
+	--blue: #e1f5fe;	/* blue background color */
+	--blue-font: #4fc3f7;
+	--link: #2962ff; 	/* link text color */
+}
+
+body, html {
+	width: 100%;
+	height: 100%;
+	background-color: var(--gray150);
+	margin: 0;
+}
+
+#main {
+	width: 100vw;
+	height: 97vh;
+
+	position: absolute;
+	top: 3vh;
+	left: 0;
+	
+	display: grid;
+	grid-template-rows: 65% 35%;
+	grid-template-columns: 75% 25%;
+
+	background-color: var(--gray200);
+}
+#preview {
+	display: inline-grid;
+	grid-column-start: 1;
+	grid-column-end: 2;
+	grid-row-start: 1;
+	grid-row-end: 2;
+
+	background-color: var(--green);
+}
+#timeline {
+	display: inline-grid;
+	grid-column-start: 1;
+	grid-column-end: 3;
+	grid-row-start: 2;
+	grid-row-end: 3;
+
+	background-color: var(--red);
+}
+#cuelist {
+	display: inline-grid;
+	grid-column-start: 2;
+	grid-column-end: 3;
+	grid-row-start: 1;
+	grid-row-end: 2;
+
+	background-color: var(--blue-font);
+}
