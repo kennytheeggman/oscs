@@ -67,10 +67,11 @@ var track_node_radius = 0.4 * vh;
 
 var lights = ["One", "Two", "Three", "Four", "Five"];
 var tracks = [
-	[[1, 0.8, 0.5], [1.5, 0.9, 0.5], [5, 0.75, 0.5], [12, 1, 0.5], [13, 0, 0.5]],
-	[[1, 0.2, 0.5], [1.5, 0.8, 0.5], [5, 0.5, 0.5], [12, 1, 0.5], [13, 0, 0.5]],
-	[[1, 0.2, 0.5], [1.5, 0.8, 0.5], [5, 0.5, 0.5], [12, 1, 0.5], [13, 0, 0.5]],
+	[[1, 0.8], [1.5, 0.9], [5, 0.75], [12, 1], [13, 0]],
+	[[1, 0.2], [1.5, 0.8], [5, 0.5], [12, 1], [13, 0]],
+	[[1, 0.2], [1.5, 0.8], [5, 0.5], [12, 1], [13, 0]],
 ];
+var times = [0.5, 0.5, 0.5, 0.5, 0.5];
 var time = 30;
 var held = false;
 var held_node = -1;
@@ -158,7 +159,7 @@ function add_track(nodes, light) {
 		let last_node = nodes[i-1];
 		let node = nodes[i];
 		let starting = ti_to_xy(last_node[0], last_node[1]);
-		let ending = ti_to_xy(last_node[0] + node[2], node[1]);
+		let ending = ti_to_xy(last_node[0] + times[i-1], node[1]);
 		let norm = normalize(ending[0] - starting[0], ending[1] - starting[1]);
 		if (i > 1) {
 			starting[0] = starting[0] + norm[0] * track_node_radius;
@@ -231,21 +232,23 @@ canvas.addEventListener("mousemove", (evt) => {
 	let x = evt.offsetX, y = evt.offsetY;
 	if (held && held_node != -1) {
 		let wall_collide = (x, y) => {
-			let last_node_coords, next_node_coords;
-			last_node_coords = [0, 0, 0];
-			next_node_coords = [time, 0, 0];
+			let last_node_coords, next_node_coords, next_uptime;
+			last_node_coords = [0, 0];
+			next_node_coords = [time, 0];
+			next_uptime = 0;
+
 			if (held_node != 0) {
 				last_node_coords = tracks[held_track][held_node - 1];
 			}
 			if (held_node != tracks[held_track].length - 1) {
 				next_node_coords = tracks[held_track][held_node + 1];
+				next_uptime = times[held_node + 1] * space_per_second;
 			}
-			let next_uptime = next_node_coords[2] * space_per_second;
 			last_node_coords = ti_to_xy(last_node_coords[0], last_node_coords[1]);
 			next_node_coords = ti_to_xy(next_node_coords[0], next_node_coords[1]);
 
 			let node_coords = tracks[held_track][held_node];
-			let uptime = node_coords[2] * space_per_second;
+			let uptime = times[held_node] * space_per_second;
 			node_coords = ti_to_xy(node_coords[0], node_coords[1]);
 			let collidex = Math.max(x, last_node_coords[0] + uptime);
 			collidex = Math.min(collidex, next_node_coords[0] - next_uptime);
