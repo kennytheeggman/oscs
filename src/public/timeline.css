@@ -74,7 +74,7 @@
 	grid-column-start: 1;
 	grid-column-end: 2;
 	display: grid;
-	grid-template-columns: auto auto auto;
+	grid-template-columns: auto auto;
 	align-items: center;
 	padding: 0 2vh;
 	grid-gap: 1vh;

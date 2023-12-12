@@ -81,7 +81,7 @@ body, html {
 	grid-row-start: 1;
 	grid-row-end: 2;
 
-	background-color: var(--blue-font);
+	background-color: var(--gray00);
 }
 p {
 	font-family: Nunito, sans-serif;

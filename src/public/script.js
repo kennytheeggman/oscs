@@ -3,8 +3,6 @@ const ctx = canvas.getContext("2d");
 const scrollbar = document.getElementById("scrollbar-wrapper");
 const canvasw = document.getElementById("canvas-wrapper");
 const labels = document.getElementById("labels");
-const scale = document.getElementById("scale-canvas");
-const stx = scale.getContext("2d");
 const scroll = document.getElementById("scrollbar");
 const keys = document.getElementById("keys");
 const axis = document.getElementById("axis");
@@ -14,77 +12,75 @@ var width = scrollbar.offsetWidth;
 var height = labels.offsetHeight;
 var vh = window.innerHeight * 0.01;
 canvas.width = width;
-scale.width = width;
 canvas.height = height;
 
+const label_odd_color = "#ffffff";
+const label_even_color = "#f4f6fb";
+const major_axis_line_color = "#e1e5ee";
+const minor_axis_line_color = "#e1e5ee";
+const track_node_color = "#4fc3f7"
+const track_node_selected_color = "#0a99db";
+const track_fill_selected_color = "#0a99db55";
+const track_fill_color = "#4fc3f755";
+const play_marker_color = "#a68b00";
+// 
 function update_dims() {
 	width = scrollbar.scrollWidth;
 	height = labels.offsetHeight;
 	vh = window.innerHeight * 0.01;
 	
 	canvas.width = width;
-	scale.width = width;
 	canvas.height = height;
 	
-	zoomlevel = 1; // 10px = 1s; markers every 10s;
-	zoomscale = 1;
 	label_height = 5 * vh;
-	label_odd_color = "#ffffff";
-	label_even_color = "#f4f6fb";
 	axis_label_separation = 8 * vh;
 	space_per_second = 8 * vh;
-	major_axis_line_color = "#e1e5ee";
-	minor_axis_line_color = "#e1e5ee";
 	major_axis_line_width = 0.2 * vh;
 	minor_axis_line_width = 0.1 * vh;
 	minor_lines_per_major_line = 5;
-	track_node_color = "#4fc3f7";
-	track_node_selected_color = "#0a99db";
-	track_fill_selected_color = "#0a99db55";
-	track_fill_color = "#4fc3f755";
 	track_start_offset = 0.5 * vh;
 	track_size = label_height - 2 * track_start_offset;
 	track_node_offset = 0.1 * vh;
 	track_node_line_width = 0.2 * vh;
 	track_node_radius = 0.4 * vh;
+    play_marker_width = 0.2 * vh;
 }
 
-var zoomlevel = 1; // 10px = 1s; markers every 10s;
-var zoomscale = 1;
 var label_height = 5 * vh;
-var label_odd_color = "#ffffff";
-var label_even_color = "#f4f6fb";
 var axis_label_separation = 8 * vh;
 var space_per_second = 8 * vh;
-var major_axis_line_color = "#e1e5ee";
-var minor_axis_line_color = "#e1e5ee";
 var major_axis_line_width = 0.2 * vh;
 var minor_axis_line_width = 0.1 * vh;
 var minor_lines_per_major_line = 5;
-var track_node_color = "#4fc3f7"
-var track_node_selected_color = "#0a99db";
-var track_fill_selected_color = "#0a99db55";
-var track_fill_color = "#4fc3f755";
 var track_start_offset = 0.5 * vh;
 var track_size = label_height - 2 * track_start_offset;
 var track_node_offset = 0.1 * vh;
 var track_node_line_width = 0.2 * vh;
 var track_node_radius = 0.4 * vh;
+var play_marker_width = 0.2 * vh;
 
-var lights = ["One", "Two", "Three", "Four", "Five"];
+var lights = [
+    "Upper Top 1", "Upper Top 2", "Upper Top 3", "Upper Top 4", "Upper Top 5", 
+    "Lower Top 1", "Lower Top 2", "Lower Top 3", "Lower Top 4", "Lower Top 5", "Lower Top 6", 
+    "Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5", "Tip 6"
+];
 var tracks = [
 	[0.8, 0.9, 0.75, 1, 0],
 	[0.2, 0.8, 0.5, 1, 0],
 	[0.2, 0.8, 0.5, 1, 0],
 ];
 var starts = [1, 1.5, 5, 12, 13];
-var times = [0.5, 0.5, 0.5, 0.5, 0.5];
-var time = 30;
+var times = [0.5, 0.5, 0.25, 0, 0.5];
 var held = false;
+var time = 0;
+var play_held = false;
 var held_node = -1;
 var held_track = -1;
 var selected_node = -1;
 var selected_track = -1;
+var current_time = time;
+
+// ----------------------------- timeline operation -----------------------------  //
 
 function reset_timeline() {
 	set_lights(lights);
@@ -94,6 +90,8 @@ function rerender_timeline() {
 	let save_scrolly = keys.scrollTop;
 	time = Math.max(...starts) + 1;
 	add_time(time);
+	ctx.fillStyle = play_marker_color;
+	ctx.fillRect(ti_to_xy(current_time)[0], 0, play_marker_width, canvas.height);
 	for (let i = 0; i < tracks.length; i++) {
 		add_track(tracks[i], i); 
 	}
@@ -195,14 +193,14 @@ function add_track(nodes, light) {
 }
 function search_node(nodes, light, x, y) {
 	let v_offset = light * label_height;
-	let bounds = xy_to_ti(track_node_radius);
+	let bounds = xy_to_ti(track_node_radius * 1.5);
 	let transformed = xy_to_ti(x, y - v_offset);
 	for (let i = 0; i < nodes.length; i++) {
 		let rect = [
 			starts[i] - bounds[0], 
 			starts[i] + bounds[0], 
-			nodes[i] - track_node_radius / track_size,
-			nodes[i] + track_node_radius / track_size
+			nodes[i] - track_node_radius * 1.5 / track_size,
+			nodes[i] + track_node_radius * 1.5 / track_size
 		];
 		let withinx = transformed[0] >= rect[0] && transformed[0] <= rect[1];
 		let withiny = transformed[1] >= rect[2] && transformed[1] <= rect[3];
@@ -227,25 +225,55 @@ function normalize(relx, rely) {
 	return [ux, uy];
 } 
 canvas.addEventListener("mousedown", (evt) => {
-	held = true;
 	for (let i = 0; i < tracks.length; i++) {
 		let node = search_node(tracks[i], i, evt.offsetX, evt.offsetY, track_node_radius);
 		if (node != -1) {
+        	held = true;
 			held_node = node;
 			held_track = i;
 		}
 	}
-	selected_node = held_node;
-	selected_track = held_track;
+	let distance_from_play = Math.abs(evt.offsetX - current_time * space_per_second);
+	if (held_node == -1 && distance_from_play < 2 * vh) {
+	    play_held = true;
+	}
+	else {
+	    selected_node = held_node;
+	    selected_track = held_track;
+	}
 	rerender_timeline();
 });
 canvas.addEventListener("mouseup", () => {
 	held = false;
+	play_held = false;
 	held_node = -1;
 	held_track = -1;
 });
+var canvas_left_right_client_loc, canvas_left_right_canvas_loc;
 canvas.addEventListener("mousemove", (evt) => {
 	let x = evt.offsetX, y = evt.offsetY;
+	canvas_left_right_client_loc = evt.clientX;
+	canvas_left_right_canvas_loc = evt.offsetX;
+	let hovering = false, moving = false;
+	for (let i = 0; i < tracks.length; i++) {
+		let node = search_node(tracks[i], i, evt.offsetX, evt.offsetY, track_node_radius);
+		if (node != -1) {
+		    hovering = true;
+		}
+	}
+	let distance_from_play = Math.abs(evt.offsetX - current_time * space_per_second);
+	if (held_node == -1 && distance_from_play < 2 * vh) {
+	    moving = true;
+	}
+	if (hovering) {
+	    canvas.style.cursor = "pointer";
+	}
+	else if (moving) {
+	    canvas.style.cursor = "col-resize";
+	}
+	else {
+	    canvas.style.cursor = "default";
+	}
 	if (held && held_node != -1) {
 		let wall_collide = (x, y) => {
 			let last_node_coords, next_node_coords, next_uptime;
@@ -264,7 +292,7 @@ canvas.addEventListener("mousemove", (evt) => {
 				next_uptime = times[held_node + 1] * space_per_second;
 			}
 			last_node_coords = ti_to_xy(last_node_coords[0], 0);
-			next_node_coords = ti_to_xy(last_node_coords[0], 0);
+			next_node_coords = ti_to_xy(next_node_coords[0], 0);
 
 			let node_coords = tracks[held_track][held_node];
 			let uptime = times[held_node] * space_per_second;
@@ -274,24 +302,42 @@ canvas.addEventListener("mousemove", (evt) => {
 			console.log(collidex);
 			let collidey = Math.max(y, held_track * label_height + track_start_offset);
 			collidey = Math.min(collidey, (held_track+1)*label_height - track_start_offset);
-
+            
+            if (evt.altKey) {
+                return [node_coords[0], collidey];
+            }
+            else if (evt.shiftKey) {
+                return [collidex, node_coords[1]];
+            }
 			return [collidex, collidey];
 		}
 		
 		let c = wall_collide(x, y);
 		console.log(c);
 		new_node = xy_to_ti(c[0], c[1] - (held_track * label_height));
+		if (!evt.ctrlKey) {
+		    new_node[0] = Math.ceil(new_node[0] * 10) / 10;
+		    new_node[1] = Math.ceil(new_node[1] * 100) / 100;
+		}
 		starts[held_node] = new_node[0];
 		tracks[held_track][held_node] = new_node[1];
 		rerender_timeline();
-		if (window.innerWidth - evt.clientX < 2 * vh) {
-			canvasw.scrollLeft += vh;
-		}
-		if (evt.clientX - canvasw.getBoundingClientRect().left < 2 * vh) {
-			canvasw.scrollLeft -= vh;
-		}
+	}
+	else if (play_held) {
+	    let play_t = xy_to_ti(x)[0];
+	    current_time = Math.max(0, Math.min(play_t, time));
+	    rerender_timeline();
 	}
 });
+let autoscroll = setInterval(() => {
+    if (held_node == -1) return;
+	if (window.innerWidth - canvas_left_right_client_loc < 2 * vh) {
+		canvasw.scrollLeft += vh;
+	}
+	if (canvas_left_right_client_loc - canvasw.getBoundingClientRect().left < 2 * vh) {
+		canvasw.scrollLeft -= vh;
+	}
+})
 rerender_timeline();
 // timeline scrolling 
 scrollbar.onscroll = () => {

@@ -5,8 +5,9 @@
 	<title>OSCS</title>
 	<link rel="stylesheet" href="style.css" media="all">
 	<link rel="stylesheet" href="timeline.css" media="all">
+	<link rel="stylesheet" href="cuelist.css" media="all">
 	<style>
-	@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&family=Nunito:wght@200;400;500;600;700;800&display=swap');
+	    @import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&family=Nunito:wght@200;400;500;600;700;800&display=swap');
 	</style>
 </head>
 <body>
@@ -15,12 +16,11 @@
 		<div id="timeline">
 			<div id="axis">
 				<div id="options">
-					<input type="button" id="intensity">
-					<input type="button" id="color">
-					<input type="button" id="focus">
+					<input type="button" id="intensity" value="Intensity">
+					<input type="button" id="color" value="Color">
+					<!-- <input type="button" id="focus" value="Focus"> -->
 				</div>
 				<div id="scrollbar-wrapper">
-					<canvas id="scale-canvas" width="2000" height="30"></canvas>
 					<div id="scrollbar"></div>	
 				</div>
 			</div>
@@ -32,7 +32,24 @@
 				</div>
 			</div>
 		</div>
-		<div id="cuelist"></div>
+		<div id="cuelist">
+		    <div id="headers">
+		    </div>
+		    <div id="cues">
+		        
+		    </div>
+		    <div id="controls">
+		        <input type="button" value="Go"><!--  play   -->
+		        <input type="button" value="Pause"><!--  pause   -->
+		        <input type="button" value="Stop"><!--  stop   -->
+		        <input type="number" id="" min="0">
+		        <input type="button" value="Add">
+		        <input type="button" value="Delete" disabled>
+		    </div>
+		</div>
+		<div id="editor">
+		    
+		</div>
 	</div>
 	<script src="script.js"></script>
 </body>

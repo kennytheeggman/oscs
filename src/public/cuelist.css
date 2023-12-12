@@ -1,0 +1,20 @@
+#cuelist {
+    display: grid;
+    grid-template-rows: 6vh calc(100% - 12vh) 6vh;
+}
+
+#headers {
+    width: 100%;
+    
+    background-color: var(--gray200);
+}
+#cues {
+    width: 100%;
+    
+    background-color: var(--gray00);
+}
+#controls {
+    width: 100%;
+    
+    background-color: var(--gray200);
+}
