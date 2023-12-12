@@ -39,6 +39,9 @@ function update_dims() {
 	minor_axis_line_width = 0.1 * vh;
 	minor_lines_per_major_line = 5;
 	track_node_color = "#4fc3f7";
+	track_node_selected_color = "#0a99db";
+	track_fill_selected_color = "#0a99db55";
+	track_fill_color = "#4fc3f755";
 	track_start_offset = 0.5 * vh;
 	track_size = label_height - 2 * track_start_offset;
 	track_node_offset = 0.1 * vh;
@@ -58,7 +61,10 @@ var minor_axis_line_color = "#e1e5ee";
 var major_axis_line_width = 0.2 * vh;
 var minor_axis_line_width = 0.1 * vh;
 var minor_lines_per_major_line = 5;
-var track_node_color = "#4fc3f7";
+var track_node_color = "#4fc3f7"
+var track_node_selected_color = "#0a99db";
+var track_fill_selected_color = "#0a99db55";
+var track_fill_color = "#4fc3f755";
 var track_start_offset = 0.5 * vh;
 var track_size = label_height - 2 * track_start_offset;
 var track_node_offset = 0.1 * vh;
@@ -67,10 +73,11 @@ var track_node_radius = 0.4 * vh;
 
 var lights = ["One", "Two", "Three", "Four", "Five"];
 var tracks = [
-	[[1, 0.8], [1.5, 0.9], [5, 0.75], [12, 1], [13, 0]],
-	[[1, 0.2], [1.5, 0.8], [5, 0.5], [12, 1], [13, 0]],
-	[[1, 0.2], [1.5, 0.8], [5, 0.5], [12, 1], [13, 0]],
+	[0.8, 0.9, 0.75, 1, 0],
+	[0.2, 0.8, 0.5, 1, 0],
+	[0.2, 0.8, 0.5, 1, 0],
 ];
+var starts = [1, 1.5, 5, 12, 13];
 var times = [0.5, 0.5, 0.5, 0.5, 0.5];
 var time = 30;
 var held = false;
@@ -85,6 +92,7 @@ function reset_timeline() {
 function rerender_timeline() {
 	let save_scrollx = canvasw.scrollLeft;
 	let save_scrolly = keys.scrollTop;
+	time = Math.max(...starts) + 1;
 	add_time(time);
 	for (let i = 0; i < tracks.length; i++) {
 		add_track(tracks[i], i); 
@@ -154,28 +162,35 @@ function add_track(nodes, light) {
 		ctx.fill();
 		ctx.stroke();
 	}
-	nodes.unshift([0, 0]);
+	nodes.unshift(0);
+	starts.unshift(0);
 	for (let i = 1; i < nodes.length; i++) {
 		let last_node = nodes[i-1];
 		let node = nodes[i];
-		let starting = ti_to_xy(last_node[0], last_node[1]);
-		let ending = ti_to_xy(last_node[0] + times[i-1], node[1]);
-		let norm = normalize(ending[0] - starting[0], ending[1] - starting[1]);
-		if (i > 1) {
-			starting[0] = starting[0] + norm[0] * track_node_radius;
-			starting[1] = starting[1] + norm[1] * track_node_radius;
-		}
+		let starting = ti_to_xy(starts[i-1], last_node);
+		let ending = ti_to_xy(starts[i-1] + times[i-1], node);
 		ctx.beginPath();
 		ctx.lineWidth = track_node_line_width;
-		ctx.strokeStyle = track_node_color;
+		if (i != selected_node + 1) {
+			ctx.strokeStyle = track_node_color;
+			ctx.fillStyle = track_fill_color;
+		}
+		else {
+			ctx.strokeStyle = track_node_selected_color;
+			ctx.fillStyle = track_fill_selected_color;
+		}
 		ctx.moveTo(starting[0], starting[1] + v_offset);
 		ctx.lineTo(ending[0], ending[1] + v_offset);
-		ctx.lineTo(ti_to_xy(node[0])[0] - track_node_radius, ending[1] + v_offset);
+		ctx.lineTo(ti_to_xy(starts[i])[0], ending[1] + v_offset);
 		ctx.stroke();
+		ctx.lineTo(ti_to_xy(starts[i])[0], v_offset + label_height - track_start_offset);
+		ctx.lineTo(starting[0], v_offset + label_height - track_start_offset);
+		ctx.fill();
 	}
 	nodes.shift();
-	for (node of nodes) {
-		draw_point(node[0], node[1]);
+	starts.shift();
+	for (let i = 0; i < nodes.length; i++) {
+		draw_point(starts[i], nodes[i]);
 	}
 }
 function search_node(nodes, light, x, y) {
@@ -184,10 +199,10 @@ function search_node(nodes, light, x, y) {
 	let transformed = xy_to_ti(x, y - v_offset);
 	for (let i = 0; i < nodes.length; i++) {
 		let rect = [
-			nodes[i][0] - bounds[0], 
-			nodes[i][0] + bounds[0], 
-			nodes[i][1] - track_node_radius / track_size,
-			nodes[i][1] + track_node_radius / track_size
+			starts[i] - bounds[0], 
+			starts[i] + bounds[0], 
+			nodes[i] - track_node_radius / track_size,
+			nodes[i] + track_node_radius / track_size
 		];
 		let withinx = transformed[0] >= rect[0] && transformed[0] <= rect[1];
 		let withiny = transformed[1] >= rect[2] && transformed[1] <= rect[3];
@@ -218,10 +233,11 @@ canvas.addEventListener("mousedown", (evt) => {
 		if (node != -1) {
 			held_node = node;
 			held_track = i;
-			selected_node = node;
-			selected_track = i;
 		}
 	}
+	selected_node = held_node;
+	selected_track = held_track;
+	rerender_timeline();
 });
 canvas.addEventListener("mouseup", () => {
 	held = false;
@@ -233,25 +249,29 @@ canvas.addEventListener("mousemove", (evt) => {
 	if (held && held_node != -1) {
 		let wall_collide = (x, y) => {
 			let last_node_coords, next_node_coords, next_uptime;
-			last_node_coords = [0, 0];
-			next_node_coords = [time, 0];
 			next_uptime = 0;
-
+			last_node_coords = [0]
+			next_node_coords = [time];
 			if (held_node != 0) {
-				last_node_coords = tracks[held_track][held_node - 1];
+				last_node_coords = [
+					starts[held_node - 1], 
+				];
 			}
 			if (held_node != tracks[held_track].length - 1) {
-				next_node_coords = tracks[held_track][held_node + 1];
+				next_node_coords = [
+					starts[held_node + 1],
+				];
 				next_uptime = times[held_node + 1] * space_per_second;
 			}
-			last_node_coords = ti_to_xy(last_node_coords[0], last_node_coords[1]);
-			next_node_coords = ti_to_xy(next_node_coords[0], next_node_coords[1]);
+			last_node_coords = ti_to_xy(last_node_coords[0], 0);
+			next_node_coords = ti_to_xy(last_node_coords[0], 0);
 
 			let node_coords = tracks[held_track][held_node];
 			let uptime = times[held_node] * space_per_second;
-			node_coords = ti_to_xy(node_coords[0], node_coords[1]);
+			node_coords = ti_to_xy(starts[held_node], node_coords);
 			let collidex = Math.max(x, last_node_coords[0] + uptime);
 			collidex = Math.min(collidex, next_node_coords[0] - next_uptime);
+			console.log(collidex);
 			let collidey = Math.max(y, held_track * label_height + track_start_offset);
 			collidey = Math.min(collidey, (held_track+1)*label_height - track_start_offset);
 
@@ -259,12 +279,17 @@ canvas.addEventListener("mousemove", (evt) => {
 		}
 		
 		let c = wall_collide(x, y);
+		console.log(c);
 		new_node = xy_to_ti(c[0], c[1] - (held_track * label_height));
-		for (let i = 0; i < tracks.length; i++) {
-			tracks[i][held_node][0] = new_node[0];
-		}
-		tracks[held_track][held_node][1] = new_node[1];
+		starts[held_node] = new_node[0];
+		tracks[held_track][held_node] = new_node[1];
 		rerender_timeline();
+		if (window.innerWidth - evt.clientX < 2 * vh) {
+			canvasw.scrollLeft += vh;
+		}
+		if (evt.clientX - canvasw.getBoundingClientRect().left < 2 * vh) {
+			canvasw.scrollLeft -= vh;
+		}
 	}
 });
 rerender_timeline();
