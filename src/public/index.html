@@ -5,38 +5,27 @@
 	<title>OSCS</title>
 	<link rel="stylesheet" href="style.css" media="all">
 	<link rel="stylesheet" href="timeline.css" media="all">
+	<style>
+	@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&family=Nunito:wght@200;400;500;600;700;800&display=swap');
+	</style>
 </head>
 <body>
 	<div id="main">
 		<div id="preview"></div>
 		<div id="timeline">
 			<div id="axis">
+				<div id="options">
+					<input type="button" id="intensity">
+					<input type="button" id="color">
+					<input type="button" id="focus">
+				</div>
 				<div id="scrollbar-wrapper">
-					<div id="timings">
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-						<p>0:00.00</p>
-					</div>			
-					<div id="scrollbar"></div>
-			
+					<canvas id="scale-canvas" width="2000" height="30"></canvas>
+					<div id="scrollbar"></div>	
 				</div>
 			</div>
 			<div id="keys">
 				<div id="labels">
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
-					<p>Test</p>
 				</div>
 				<div id="canvas-wrapper">
 					<canvas id="timeline-canvas" width="2000" height="800"></canvas>

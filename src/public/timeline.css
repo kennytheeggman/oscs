@@ -1,65 +1,90 @@
 #timeline {
-	--widths: 15% 85%;
+	--widths: 20vh calc(100vw - 20vh);
 }
+
+/* keyframe controls */
 #keys {
 	width: 100%;
-	height: calc(100% - 0vh);
-	
+	height: calc(100% - 0vh);	
 	position: relative;
 	top: 0vh;
 
 	display: grid;
 	grid-template-columns: var(--widths);
-
-	overflow-y: scroll;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 #labels {
 	grid-column-start: 1;
 	grid-column-end: 2;
-}
-#canvas-wrapper {
-	grid-column-start: 2;
-	grid-column-end: 3;
-	overflow-x: scroll;
-	overflow-y: hidden;
-}
-
-#canvas-wrapper::-webkit-scrollbar {
-	position: fixed;
-}
-#axis {
-	width: 100%;
-	height: 100%;
-	display: grid;
-	grid-template-columns: var(--widths);
-}
-#scrollbar-wrapper {
-	grid-column-start: 2;
-	grid-column-end: 3;
-
-	position: relative;
-	top: 0;
-	
-	overflow-x: scroll;
-	overflow-y: hidden;
-}
-#scrollbar {
-	min-width: 2000px;
-	height: 0px;
-}
-#timings {
-	width: 2000px;
-	display: flex;
-	justify-content: space-between;
-	flex-direction: row;
+	box-shadow: 0.3vh 0 var(--gray300);
+	z-index: 0;
 }
 #labels>p {
 	padding: 1vh 1vh;
+	height: 3vh;
 	margin: 0;
 	background-color: var(--gray00);
 }
 #labels>p:nth-child(even) {
 	background-color: var(--gray150);
 }
+#canvas-wrapper {
+	grid-column-start: 2;
+	grid-column-end: 3;
 
-
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+#canvas-wrapper::-webkit-scrollbar {
+	display: none;
+}
+#canvas {
+	z-index: -1;
+}
+/* time axis controls */
+#axis {
+	width: 100%;
+	height: 100%;
+	display: grid;
+	grid-template-columns: var(--widths);
+	height: 5vh;
+	z-index: 3;
+}
+#scrollbar-wrapper {
+	grid-column-start: 2;
+	grid-column-end: 3;
+	position: relative;
+	top: 0;		
+	overflow-x: scroll;
+	overflow-y: hidden;
+}
+#scrollbar-wrapper>p {
+	position: absolute;
+	top: 0;
+	margin-top: 1.2vh;
+	padding: 0 0.8vh;
+	border-left: 0.3vh solid var(--gray300);
+}
+#scrollbar {
+	/*min-width: 2000px;*/
+	height: 1vh;
+}
+#options {
+	grid-column-start: 1;
+	grid-column-end: 2;
+	display: grid;
+	grid-template-columns: auto auto auto;
+	align-items: center;
+	padding: 0 2vh;
+	grid-gap: 1vh;
+	box-shadow: 0 1vh 1vh var(--gray200);
+}
+input[type="button"] {
+	height: 50%;
+	border-radius: 1vh;
+	background-color: var(--gray150);
+	color: var(--gray500);
+	outline: none;
+	border: none;	
+}
