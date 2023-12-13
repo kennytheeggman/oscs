@@ -7,6 +7,9 @@ const scroll = document.getElementById("scrollbar");
 const keys = document.getElementById("keys");
 const axis = document.getElementById("axis");
 const options = document.getElementById("options");
+const cues = document.getElementById("cues");
+const player_tracker = document.getElementById("time");
+const add_button = document.getElementById("add");
 
 var width = scrollbar.offsetWidth;
 var height = labels.offsetHeight;
@@ -71,14 +74,174 @@ var tracks = [
 ];
 var starts = [1, 1.5, 5, 12, 13];
 var times = [0.5, 0.5, 0.25, 0, 0.5];
+var numbers = [1.1, 1.2, 1.3, 2, 3];
+var descriptions = ["test1", "test2", "test3", "test4", "test5"];
 var held = false;
-var time = 0;
+var time = 1;
 var play_held = false;
 var held_node = -1;
 var held_track = -1;
 var selected_node = -1;
 var selected_track = -1;
-var current_time = time;
+var current_time = time-1;
+
+// ----------------------------- cue list operation -----------------------------  //
+
+function set_cues(numbers, descriptions, times, starts) {
+	cues.replaceChildren();
+	let format_time = (dec) => {
+		let dp = Math.round((dec - Math.floor(dec)) * 100);
+		let s = Math.floor(dec) % 60;
+		let m = Math.floor(Math.floor(dec) / 60);
+		return m + ":" + s.toString().padStart(2, "0") + "." + dp.toString().padStart(2, "0");
+	}
+	for (let i = 0; i < numbers.length; i++) {
+		let number = numbers[i];
+		let description = descriptions[i];
+		let fade = times[i];
+		
+		let last_time = (i == 0) ? 0 : starts[i-1];
+		let duration = starts[i] - last_time * 0;
+
+		let div;
+		
+		div = document.createElement("div");
+		div.innerHTML += "<p>" + number + "</p>";
+		div.innerHTML += "<p>" + description + "</p>";
+		div.innerHTML += "<p>" + format_time(fade) + "</p>";
+		div.innerHTML += "<p>" + format_time(duration) + "</p>";
+
+		cues.appendChild(div);
+	}
+}
+var after_dec = false;
+var after_dec_2 = false;
+player_tracker.onclick = (evt) => {
+	player_tracker.value = "0:00.00";
+	player_tracker.setSelectionRange(4, 4);
+	current_time = 0;
+	after_dec = false;
+	after_dec_2 = false;
+	rerender_timeline();
+};
+player_tracker.addEventListener("input", (evt) => {
+	let cursor_position = Math.max(player_tracker.selectionEnd, player_tracker.selectionStart);
+	let current_string = player_tracker.value;
+	if (current_string.length < 7) {
+		player_tracker.value = "0:00.00";
+		current_time = 0;
+		after_dec = false;
+		after_dec_2 = false;
+		player_tracker.setSelectionRange(4, 4);
+		rerender_timeline();
+		return;
+	}
+	let new_chars = current_string.substring(4, cursor_position);
+	new_chars.replaceAll(":", "");
+	console.log(current_string);
+	let td = new_chars.split(".");
+	let min, sec, dec;
+	if (new_chars.length == 1) {
+		if (new_chars == ".") {
+			after_dec = true;
+			current_string = current_string.replaceAll(":", "").replaceAll(".", "");
+			min = current_string.substring(0, 1);
+			sec = current_string.substring(1, 3);
+			dec = current_string.substring(3);
+		}
+		else if (!after_dec && !after_dec_2) {
+			current_string = current_string.replaceAll(":", "").replaceAll(".", "");
+			current_string = current_string.substring(1);
+			min = current_string.substring(0, 1);
+			sec = current_string.substring(1, 3);
+			dec = current_string.substring(3);
+		}
+		else if (after_dec) {
+			current_string = current_string.replaceAll(":", "").replaceAll(".", "");
+			current_string = current_string.substring(0, 4) + current_string.substring(5);
+			min = current_string.substring(0, 1);
+			sec = current_string.substring(1, 3);
+			dec = current_string.substring(3);
+			after_dec = false;
+			after_dec_2 = true;
+		}
+		else if (after_dec_2) {
+			current_string = current_string.replaceAll(":", "").replaceAll(".", "");
+			current_string = current_string.substring(0, 3) + current_string.substring(4, 5) + current_string.substring(3, 4);
+			min = current_string.substring(0, 1);
+			sec = current_string.substring(1, 3);
+			dec = current_string.substring(3);
+			after_dec_2 = false;
+		}
+	}
+	else {
+		if (td.length == 1) {
+			sec = new_chars.substring(new_chars.length - 2).padStart(2, "0");
+			min = new_chars.substring(new_chars.length - 3, new_chars.length - 2).padStart(1, "0");
+			dec = "00"
+		}
+		else if (td.length == 2) {
+			sec = td[0].substring(new_chars.length - 2).padStart(2, "0");
+			min = td[0].substring(new_chars.length - 3, new_chars.length - 2).padStart(1, "0");
+			dec = td[1].substring(2).padStart(2, "0");
+		}
+		else {
+			let running_dec = "";
+			for (let i = 1; i < td.length; i++) {
+				running_dec += td[i];
+			}
+			sec = td[0].substring(new_chars.length - 2).padStart(2, "0");
+			min = td[0].substring(new_chars.length - 3, new_chars.length - 2).padStart(1, "0");
+			dec = running_dec.substring(2).padStart(2, "0");
+		}
+	}
+	let new_time = parseInt(min) * 60 + parseInt(sec) + parseInt(dec) / 100;
+	if (time < new_time) {
+		min = Math.floor((time) / 60).toString().padStart(1, "0");
+		sec = (Math.floor(time) % 60).toString().padStart(2, "0");
+		dec = Math.floor(((time) - Math.floor(time)) * 100).toString().padStart(2, "0");
+	}
+
+	current_string = min + ":" + sec + "." + dec;
+	player_tracker.value = current_string;
+	
+	new_time = parseInt(min) * 60 + parseInt(sec) + parseInt(dec) / 100;
+	current_time = new_time;
+	player_tracker.setSelectionRange(4, 4);
+	rerender_timeline();
+});
+function sync_current_time() {
+	time = Math.max(...starts) + 1;
+	add_time(time);
+	let min = Math.floor((current_time) / 60).toString().padStart(1, "0");
+	let sec = (Math.floor(current_time) % 60).toString().padStart(2, "0");
+	let dec = Math.round(((current_time) - Math.floor(current_time)) * 100).toString().padStart(2, "0");
+	player_tracker.value = min + ":" + sec + "." + dec;
+}
+function add_cue_eligible() {
+	let eligible = true;
+	for (let i = 0; i < starts.length - 1; i++) {
+		let lowerbound = starts[i];
+		let upperbound = starts[i] + times[i + 1];
+		if (current_time >= lowerbound && current_time <= upperbound) {
+			eligible = false;
+		}
+	}
+	if (current_time <= times[0]) {
+		eligible = false;
+	}
+	if (current_time == starts[starts.length - 1]){
+		eligible = false;
+	}
+	
+	if (eligible) {
+		add_button.removeAttribute("disabled");
+	}
+	else {
+		add_button.setAttribute("disabled", "");
+	}
+}
+
 
 // ----------------------------- timeline operation -----------------------------  //
 
@@ -86,10 +249,9 @@ function reset_timeline() {
 	set_lights(lights);
 }
 function rerender_timeline() {
+	sync_current_time();
 	let save_scrollx = canvasw.scrollLeft;
 	let save_scrolly = keys.scrollTop;
-	time = Math.max(...starts) + 1;
-	add_time(time);
 	ctx.fillStyle = play_marker_color;
 	ctx.fillRect(ti_to_xy(current_time)[0], 0, play_marker_width, canvas.height);
 	for (let i = 0; i < tracks.length; i++) {
@@ -98,6 +260,8 @@ function rerender_timeline() {
 	canvasw.scrollLeft = save_scrollx;
 	scrollbar.scrollLeft = save_scrollx;
 	keys.scrollTop = save_scrolly;
+	set_cues(numbers, descriptions, times, starts);
+	add_cue_eligible();
 }
 // depends on: 	label_odd_color, label_even_color, label_height, update_dims
 function set_lights(lights) {
@@ -125,7 +289,7 @@ function add_time(t) {
 	update_dims();
 	for (var i = 0; i < t; i++) {
 		p = document.createElement('p');
-		p.innerHTML = "0:" + i.toString().padStart(2, '0') + ".00";
+		p.innerHTML = Math.floor(i/60) + ":" + (Math.floor(i%60)).toString().padStart(2, '0');
 		let left_off = i * axis_label_separation;
 		p.style.left = left_off + "px";
 		scrollbar.appendChild(p);
@@ -136,7 +300,7 @@ function add_time(t) {
 		ctx.fillStyle = minor_axis_line_color;
 		ctx.fillRect(left_off, 0, minor_axis_line_width, canvas.height);
 	}
-	for (var i = 0; i < t; i++) {
+	for (var i = 0; i <= t; i++) {
 		let left_off = i * axis_label_separation;
 		ctx.fillStyle = major_axis_line_color;
 		ctx.fillRect(left_off, 0, major_axis_line_width, canvas.height);
@@ -275,6 +439,7 @@ canvas.addEventListener("mousemove", (evt) => {
 	    canvas.style.cursor = "default";
 	}
 	if (held && held_node != -1) {
+		let upperbound, lowerbound;
 		let wall_collide = (x, y) => {
 			let last_node_coords, next_node_coords, next_uptime;
 			next_uptime = 0;
@@ -297,36 +462,44 @@ canvas.addEventListener("mousemove", (evt) => {
 			let node_coords = tracks[held_track][held_node];
 			let uptime = times[held_node] * space_per_second;
 			node_coords = ti_to_xy(starts[held_node], node_coords);
-			let collidex = Math.max(x, last_node_coords[0] + uptime);
-			collidex = Math.min(collidex, next_node_coords[0] - next_uptime);
-			console.log(collidex);
+			upperbound = next_node_coords[0] - next_uptime;
+			lowerbound = last_node_coords[0] + uptime;
+			let collidex = Math.max(x, lowerbound);
+			collidex = Math.min(collidex, upperbound);
 			let collidey = Math.max(y, held_track * label_height + track_start_offset);
 			collidey = Math.min(collidey, (held_track+1)*label_height - track_start_offset);
-            
-            if (evt.altKey) {
-                return [node_coords[0], collidey];
-            }
-            else if (evt.shiftKey) {
-                return [collidex, node_coords[1]];
-            }
+            		if (evt.altKey) {
+				return [node_coords[0], collidey];
+			}
+			else if (evt.shiftKey) {
+				return [collidex, node_coords[1]];
+			}
 			return [collidex, collidey];
 		}
 		
 		let c = wall_collide(x, y);
-		console.log(c);
 		new_node = xy_to_ti(c[0], c[1] - (held_track * label_height));
 		if (!evt.ctrlKey) {
-		    new_node[0] = Math.ceil(new_node[0] * 10) / 10;
-		    new_node[1] = Math.ceil(new_node[1] * 100) / 100;
+			new_node[0] = Math.round(new_node[0] * 10) / 10;
+			if (new_node[0] * 10000 > Math.round(xy_to_ti(upperbound)[0] * 10000)) {
+				new_node[0] -= 0.1;
+			}
+			if (new_node[0] * 10000 < Math.round(xy_to_ti(lowerbound)[0] * 10000)) {
+				new_node[0] += 0.1;
+			}
+			new_node[1] = Math.round(new_node[1] * 100) / 100;
 		}
 		starts[held_node] = new_node[0];
 		tracks[held_track][held_node] = new_node[1];
 		rerender_timeline();
 	}
 	else if (play_held) {
-	    let play_t = xy_to_ti(x)[0];
-	    current_time = Math.max(0, Math.min(play_t, time));
-	    rerender_timeline();
+		let play_t = xy_to_ti(x)[0];
+		if (!evt.ctrlKey) {
+			play_t = Math.round(play_t * 10) / 10;
+		}
+		current_time = Math.max(0, Math.min(play_t, time));
+		rerender_timeline();
 	}
 });
 let autoscroll = setInterval(() => {

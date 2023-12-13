@@ -84,8 +84,10 @@ body, html {
 	background-color: var(--gray00);
 }
 p {
+	vertical-align: middle;
 	font-family: Nunito, sans-serif;
 	font-size: 1.65vh;
+	user-select: none;
 }
 
 

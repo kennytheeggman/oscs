@@ -29,7 +29,7 @@ def text_timeline_css():
     return Response(text, mimetype="text/css")
 
 @app.route("/cuelist.css")
-def text_timeline_css():
+def text_cuelist_css():
     text = ""
     with open("src/public/cuelist.css", "r") as f:
         text = f.read()

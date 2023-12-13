@@ -33,19 +33,29 @@
 			</div>
 		</div>
 		<div id="cuelist">
-		    <div id="headers">
-		    </div>
-		    <div id="cues">
-		        
-		    </div>
-		    <div id="controls">
-		        <input type="button" value="Go"><!--  play   -->
-		        <input type="button" value="Pause"><!--  pause   -->
-		        <input type="button" value="Stop"><!--  stop   -->
-		        <input type="number" id="" min="0">
-		        <input type="button" value="Add">
-		        <input type="button" value="Delete" disabled>
-		    </div>
+			<div id="headers">
+				<p>Cue</p>
+				<p>Description</p>
+				<p>Fade</p>
+				<p>End Time</p>
+			</div>
+			<div id="cues">
+			</div>
+			<div id="controls">
+				<div id="left">
+					<input type="button" id="go" value="Go"><!--  play   -->
+					<input type="button" id="pause" value="Pause"><!--  pause   -->
+					<input type="button" id="stop" value="Stop"><!--  stop   -->
+				</div>
+				<div id="right">
+					<div id="playerinput">	
+						<input type="button" id="player" value="Player">
+						<input type="text" value="0:00.00" id="time" min="0">
+					</div>
+					<input type="button" id="add" value="Add">
+					<input type="button" id="delete" value="Delete" disabled>
+				</div>
+			</div>
 		</div>
 		<div id="editor">
 		    

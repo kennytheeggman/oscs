@@ -1,20 +1,139 @@
 #cuelist {
-    display: grid;
-    grid-template-rows: 6vh calc(100% - 12vh) 6vh;
+	display: grid;
+	grid-template-rows: 6vh calc(100% - 12vh) 6vh;
 }
 
 #headers {
-    width: 100%;
+	width: 100%;
     
-    background-color: var(--gray200);
+	background-color: var(--gray00);
 }
 #cues {
-    width: 100%;
-    
-    background-color: var(--gray00);
+	width: 100%;
+	overflow-y: auto;
+	background-color: var(--gray00);
 }
 #controls {
-    width: 100%;
-    
-    background-color: var(--gray200);
+	width: 100%;
+	
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background-color: var(--gray00);
+	border-bottom: 0.2vh solid var(--gray200);
+	box-shadow: 0 -1vh 1vh var(--gray150);
 }
+
+#left {
+	display: flex;
+	padding-left: 2vh;
+	align-items: center;
+}
+#right {
+	display: flex;
+	padding-right: 2vh;
+	align-items: center;
+}
+
+#left>input[type="button"], #right>input[type="button"] {
+	height: 4vh;
+	width: 6vh;
+	margin: 0.25vh;
+}
+#playerinput>input[type="button"] {
+	height: 4vh;
+	background-color: var(--gray200);
+	padding: 0 1vh;
+	border-radius: 1vh 0 0 1vh;
+}
+
+#playerinput {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	margin: 0.25vh;
+}
+input[type="text"] {
+	height: 3.8vh;
+	width: 5vh;
+	border-radius: 0 1vh 1vh 0;
+	outline: none;
+	font-size: 1.35vh;
+	padding: 0 1vh;
+	border: 0.1vh solid var(--gray300);
+	font-family: Nunito, sans-serif;
+}
+input[type="text"][disabled] {
+	color: var(--gray300);
+}
+input[type="text"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+}
+
+#go {
+	background-color: var(--green);
+	color: var(--green-font);
+}
+#go:hover {
+	outline-color: var(--green-font);
+}
+#pause {
+	background-color: var(--blue);
+	color: var(--blue-font);
+}
+#pause:hover {
+	outline-color: var(--blue-font);
+}
+#stop, #delete {
+	background-color: var(--red);
+	color: var(--red-font);
+}
+#stop:hover, #delete:hover {
+	outline-color: var(--red-font);
+}
+#delete[disabled]:hover {
+	outline-color: transparent;
+}
+input[type="button"][disabled] {
+	opacity: 0.3;
+
+}
+input[type="button"]:hover {
+	outline: 0.3vh solid var(--gray400);
+}
+input[type="button"][disabled]:hover {
+	outline-color: transparent;
+}
+#player {
+	cursor: default;
+}
+#player:hover {
+	outline-color: transparent;
+}
+
+#headers {
+	display: grid;
+	grid-template-columns: 15% 45% 20% 20%;
+	box-shadow: 0 1vh 1vh var(--gray200);
+	z-index: 5;
+}
+#headers>p {
+	padding: 0 2vh;
+	z-index: 4;
+	font-weight: 700;
+}
+
+#cues>div {
+	background-color: var(--gray00);
+	display: grid;
+	grid-template-columns: 15% 45% 20% 20%;
+}
+#cues>div>p {
+	padding: 0 2vh;
+	font-size: 1.5vh;
+}
+#cues>div:nth-child(even) {
+	background-color: var(--gray150);
+}
+
