@@ -146,8 +146,21 @@ player_tracker.addEventListener("input", (evt) => {
 	current_time = new_time;
 	rerender_timeline();
 });
-fade_up_input.oninput = (evt) => { 
-	let new_time = handle_time_input(evt); 
+fade_up_input.onclick = () => {
+	fade_up_input.value = "0:00.00";
+	fade_up_input.setSelectionRange(4, 4);
+	after_dec = false;
+	after_dec_2 = false;
+	times[selected_node] = 0;
+	rerender_timeline();
+}
+fade_up_input.oninput = (evt) => {
+	let last_start = (selected_node == 0) ? 0 : starts[selected_node - 1];
+	let current_start = starts[selected_node];
+	let follow = current_start - last_start;
+
+	let new_time = handle_time_input(evt);
+	new_time = Math.min(new_time, follow);
 	let min = Math.floor((new_time) / 60).toString().padStart(1, "0");
 	let sec = (Math.floor(new_time) % 60).toString().padStart(2, "0");
 	let dec = Math.round(((new_time) - Math.floor(new_time)) * 100).toString().padStart(2, "0");
@@ -158,18 +171,59 @@ fade_up_input.oninput = (evt) => {
 	}
 	rerender_timeline();
 };
+end_time_input.onclick = () => {
+	last_eligible_end = starts[selected_node];
+	end_time_input.value = "0:00.00";
+	temp_start = 0;
+	after_dec = false;
+	after_dec_2 = false;
+	starts[selected_node] = (check_end_eligibility(0)) ? 0 : starts[selected_node];
+	rerender_timeline();
+	end_time_input.setSelectionRange(4, 4);
+}
+var temp_start = starts[0], last_eligible_end = starts[0];
 end_time_input.oninput = (evt) => {
+	last_eligible_end = starts[selected_node];
 	let new_time = handle_time_input(evt) 
+	console.log(new_time);	
+	temp_start = new_time;
+	if (check_end_eligibility(new_time)) {
+		last_eligible_end = new_time;	
+		temp_start = last_eligible_end;
+	}
 	let min = Math.floor((new_time) / 60).toString().padStart(1, "0");
 	let sec = (Math.floor(new_time) % 60).toString().padStart(2, "0");
 	let dec = Math.round(((new_time) - Math.floor(new_time)) * 100).toString().padStart(2, "0");
 	end_time_input.value = min + ":" + sec + "." + dec;
-	end_time_input.setSelectionRange(4, 4);
 	if (selected_node != -1) {
-		starts[selected_node] = new_time;
+		starts[selected_node] = last_eligible_end;
 	}
 	rerender_timeline();
+	end_time_input.setSelectionRange(4, 4);
 };
+end_time_input.onchange = (evt) => {
+	temp_start = last_eligible_end;
+	console.log(temp_start);
+	rerender_timeline();
+}
+function check_end_eligibility(t) {
+	let eligible = true;
+	for (let i = 1; i < starts.length; i++) {
+		if (i == selected_node) {
+			continue;
+		}
+		if (t - starts[i-1] < times[selected_node] && t >= starts[i-1]) {
+			eligible = false;
+		}
+		else if (starts[i] - t < times[i] && t <= starts[i]) {
+			eligible = false;
+		}
+	}
+	if (t < times[0]) {
+		eligible = false;
+	}
+	return eligible;
+}
 function handle_time_input(evt) {
 	let cursor_position = Math.max(evt.target.selectionEnd, evt.target.selectionStart);
 	let current_string = evt.target.value;
@@ -183,7 +237,6 @@ function handle_time_input(evt) {
 	}
 	let new_chars = current_string.substring(4, cursor_position);
 	new_chars.replaceAll(":", "");
-	console.log(current_string);
 	let td = new_chars.split(".");
 	let min, sec, dec;
 	if (new_chars.length == 1) {
@@ -299,9 +352,9 @@ function open_editor(cue) {
 	let fsec = (Math.floor(times[cue]) % 60).toString().padStart(2, "0");
 	let fdec = Math.round(((times[cue]) - Math.floor(times[cue])) * 100).toString().padStart(2, "0");
 
-	let emin = Math.floor((starts[cue]) / 60).toString().padStart(1, "0");
-	let esec = (Math.floor(starts[cue]) % 60).toString().padStart(2, "0");
-	let edec = Math.round(((starts[cue]) - Math.floor(starts[cue])) * 100).toString().padStart(2, "0");
+	let emin = Math.floor((temp_start) / 60).toString().padStart(1, "0");
+	let esec = (Math.floor(temp_start) % 60).toString().padStart(2, "0");
+	let edec = Math.round(((temp_start) - Math.floor(temp_start)) * 100).toString().padStart(2, "0");
 
 	fade_time_input.value = fmin + ":" + fsec + "." + fdec;
 	end_time_input.value = emin + ":" + esec + "." + edec;
