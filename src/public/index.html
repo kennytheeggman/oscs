@@ -50,7 +50,7 @@
 				<div id="right">
 					<div id="playerinput">	
 						<input type="button" id="player" value="Player">
-						<input type="text" value="0:00.00" id="time" min="0">
+						<input type="text" value="0:00.00" id="time">
 					</div>
 					<input type="button" id="add" value="Add">
 					<input type="button" id="delete" value="Delete" disabled>
@@ -58,7 +58,156 @@
 			</div>
 		</div>
 		<div id="editor">
-		    
+			<div id="editor-header">
+				<p id="header-text">Cue 1.1 - Description</p>
+				<input type="button" value="< Back" id="close-editor">
+			</div>
+			<div id="value-editor">
+				<p>Timing and Metadata</p>
+				<div id="timing">
+					<div class="lighting">
+						<p>Cue</p>
+						<input type="text" value="1.1" id="cuenum">
+					</div>
+					<div class="lighting">
+						<p>Description</p>
+						<input type="text" value="" id= "desc">
+					</div>
+					<div class="lighting">
+						<p>Fade Time</p>
+						<input type="text" value="0:00.00" id="timeup">
+					</div>
+					<div class="lighting">
+						<p>End Time</p>
+						<input type="text" value="0:00.00" id="follow">
+					</div>
+				</div>
+				<p>Intensity and Color</p>
+				<div id="uppertops">
+					<div class="lighting">
+						<p>Upper Tops</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>1</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>2</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>3</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>4</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>5</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+				</div>
+				<div id="lowertops">
+					<div class="lighting">
+						<p>Lower Tops</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>1</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>2</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>3</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>4</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>5</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>6</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+				</div>
+				<div id="tips">
+					<div class="lighting">
+						<p>Tips</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>1</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>2</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>3</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>4</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>5</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>6</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+				</div>
+				<div id="follows">
+					<div class="lighting">
+						<p>Follows</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>1</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>2</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+				</div>
+			</div>
+			<div id="">
 		</div>
 	</div>
 	<script src="script.js"></script>

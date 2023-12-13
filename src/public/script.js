@@ -10,6 +10,10 @@ const options = document.getElementById("options");
 const cues = document.getElementById("cues");
 const player_tracker = document.getElementById("time");
 const add_button = document.getElementById("add");
+const close_editor_button = document.getElementById("close-editor");
+const editor = document.getElementById("editor");
+const fade_up_input = document.getElementById("timeup");
+const end_time_input = document.getElementById("follow");
 
 var width = scrollbar.offsetWidth;
 var height = labels.offsetHeight;
@@ -46,7 +50,7 @@ function update_dims() {
 	track_node_offset = 0.1 * vh;
 	track_node_line_width = 0.2 * vh;
 	track_node_radius = 0.4 * vh;
-    play_marker_width = 0.2 * vh;
+	play_marker_width = 0.2 * vh;
 }
 
 var label_height = 5 * vh;
@@ -63,9 +67,10 @@ var track_node_radius = 0.4 * vh;
 var play_marker_width = 0.2 * vh;
 
 var lights = [
-    "Upper Top 1", "Upper Top 2", "Upper Top 3", "Upper Top 4", "Upper Top 5", 
-    "Lower Top 1", "Lower Top 2", "Lower Top 3", "Lower Top 4", "Lower Top 5", "Lower Top 6", 
-    "Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5", "Tip 6"
+	"Upper Top 1", "Upper Top 2", "Upper Top 3", "Upper Top 4", "Upper Top 5", 
+	"Lower Top 1", "Lower Top 2", "Lower Top 3", "Lower Top 4", "Lower Top 5", "Lower Top 6", 
+	"Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5", "Tip 6",
+	"Follow 1", "Follow 2"
 ];
 var tracks = [
 	[0.8, 0.9, 0.75, 1, 0],
@@ -116,6 +121,13 @@ function set_cues(numbers, descriptions, times, starts) {
 }
 var after_dec = false;
 var after_dec_2 = false;
+
+close_editor_button.onclick = () => {
+	editor.style.transform = "translate(100%, 0)";
+	selected_node = -1;
+	selected_track = -1;
+	rerender_timeline();
+}
 player_tracker.onclick = (evt) => {
 	player_tracker.value = "0:00.00";
 	player_tracker.setSelectionRange(4, 4);
@@ -124,17 +136,50 @@ player_tracker.onclick = (evt) => {
 	after_dec_2 = false;
 	rerender_timeline();
 };
-player_tracker.addEventListener("input", (evt) => {
-	let cursor_position = Math.max(player_tracker.selectionEnd, player_tracker.selectionStart);
-	let current_string = player_tracker.value;
+player_tracker.addEventListener("input", (evt) => { 
+	let new_time = handle_time_input(evt); 	
+
+	new_time = Math.min(new_time, time);
+
+	// current_string = min + ":" + sec + "." + dec;
+	// player_tracker.value = current_string;
+	current_time = new_time;
+	rerender_timeline();
+});
+fade_up_input.oninput = (evt) => { 
+	let new_time = handle_time_input(evt); 
+	let min = Math.floor((new_time) / 60).toString().padStart(1, "0");
+	let sec = (Math.floor(new_time) % 60).toString().padStart(2, "0");
+	let dec = Math.round(((new_time) - Math.floor(new_time)) * 100).toString().padStart(2, "0");
+	fade_up_input.value = min + ":" + sec + "." + dec;
+	fade_up_input.setSelectionRange(4, 4);
+	if (selected_node != -1) {
+		times[selected_node] = new_time;
+	}
+	rerender_timeline();
+};
+end_time_input.oninput = (evt) => {
+	let new_time = handle_time_input(evt) 
+	let min = Math.floor((new_time) / 60).toString().padStart(1, "0");
+	let sec = (Math.floor(new_time) % 60).toString().padStart(2, "0");
+	let dec = Math.round(((new_time) - Math.floor(new_time)) * 100).toString().padStart(2, "0");
+	end_time_input.value = min + ":" + sec + "." + dec;
+	end_time_input.setSelectionRange(4, 4);
+	if (selected_node != -1) {
+		starts[selected_node] = new_time;
+	}
+	rerender_timeline();
+};
+function handle_time_input(evt) {
+	let cursor_position = Math.max(evt.target.selectionEnd, evt.target.selectionStart);
+	let current_string = evt.target.value;
 	if (current_string.length < 7) {
-		player_tracker.value = "0:00.00";
-		current_time = 0;
+		evt.target.value = "0:00.00";
 		after_dec = false;
 		after_dec_2 = false;
-		player_tracker.setSelectionRange(4, 4);
+		evt.target.setSelectionRange(4, 4);
 		rerender_timeline();
-		return;
+		return 0;
 	}
 	let new_chars = current_string.substring(4, cursor_position);
 	new_chars.replaceAll(":", "");
@@ -196,20 +241,9 @@ player_tracker.addEventListener("input", (evt) => {
 		}
 	}
 	let new_time = parseInt(min) * 60 + parseInt(sec) + parseInt(dec) / 100;
-	if (time < new_time) {
-		min = Math.floor((time) / 60).toString().padStart(1, "0");
-		sec = (Math.floor(time) % 60).toString().padStart(2, "0");
-		dec = Math.floor(((time) - Math.floor(time)) * 100).toString().padStart(2, "0");
-	}
-
-	current_string = min + ":" + sec + "." + dec;
-	player_tracker.value = current_string;
-	
-	new_time = parseInt(min) * 60 + parseInt(sec) + parseInt(dec) / 100;
-	current_time = new_time;
-	player_tracker.setSelectionRange(4, 4);
-	rerender_timeline();
-});
+	evt.target.setSelectionRange(4, 4);
+	return new_time;
+}
 function sync_current_time() {
 	time = Math.max(...starts) + 1;
 	add_time(time);
@@ -217,6 +251,7 @@ function sync_current_time() {
 	let sec = (Math.floor(current_time) % 60).toString().padStart(2, "0");
 	let dec = Math.round(((current_time) - Math.floor(current_time)) * 100).toString().padStart(2, "0");
 	player_tracker.value = min + ":" + sec + "." + dec;
+	player_tracker.setSelectionRange(4, 4);
 }
 function add_cue_eligible() {
 	let eligible = true;
@@ -241,6 +276,37 @@ function add_cue_eligible() {
 		add_button.setAttribute("disabled", "");
 	}
 }
+function open_editor(cue) {
+	if (cue == -1) {
+		editor.style.transform = "translate(100%, 0)";
+		return;
+	}
+	editor.style.transform = "";
+	let color_inputs = document.querySelectorAll('div.lighting>input[type="color"]');
+	let intensity_inputs = document.querySelectorAll('div.lighting>input[type="number"]');
+	
+	let header_text = document.getElementById("header-text");
+	let cue_number_input = document.getElementById("cuenum");
+	let description_input = document.getElementById("desc");
+	let fade_time_input = document.getElementById("timeup");
+	let end_time_input = document.getElementById("follow");
+
+	cue_number_input.value = numbers[cue];
+	description_input.value = descriptions[cue];
+	header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+	
+	let fmin = Math.floor((times[cue]) / 60).toString().padStart(1, "0");
+	let fsec = (Math.floor(times[cue]) % 60).toString().padStart(2, "0");
+	let fdec = Math.round(((times[cue]) - Math.floor(times[cue])) * 100).toString().padStart(2, "0");
+
+	let emin = Math.floor((starts[cue]) / 60).toString().padStart(1, "0");
+	let esec = (Math.floor(starts[cue]) % 60).toString().padStart(2, "0");
+	let edec = Math.round(((starts[cue]) - Math.floor(starts[cue])) * 100).toString().padStart(2, "0");
+
+	fade_time_input.value = fmin + ":" + fsec + "." + fdec;
+	end_time_input.value = emin + ":" + esec + "." + edec;
+	
+}
 
 
 // ----------------------------- timeline operation -----------------------------  //
@@ -249,9 +315,9 @@ function reset_timeline() {
 	set_lights(lights);
 }
 function rerender_timeline() {
-	sync_current_time();
 	let save_scrollx = canvasw.scrollLeft;
 	let save_scrolly = keys.scrollTop;
+	sync_current_time();
 	ctx.fillStyle = play_marker_color;
 	ctx.fillRect(ti_to_xy(current_time)[0], 0, play_marker_width, canvas.height);
 	for (let i = 0; i < tracks.length; i++) {
@@ -262,6 +328,8 @@ function rerender_timeline() {
 	keys.scrollTop = save_scrolly;
 	set_cues(numbers, descriptions, times, starts);
 	add_cue_eligible();
+	open_editor(selected_node);
+
 }
 // depends on: 	label_odd_color, label_even_color, label_height, update_dims
 function set_lights(lights) {
@@ -504,10 +572,10 @@ canvas.addEventListener("mousemove", (evt) => {
 });
 let autoscroll = setInterval(() => {
     if (held_node == -1) return;
-	if (window.innerWidth - canvas_left_right_client_loc < 2 * vh) {
+	if (window.innerWidth - canvas_left_right_client_loc < 4 * vh) {
 		canvasw.scrollLeft += vh;
 	}
-	if (canvas_left_right_client_loc - canvasw.getBoundingClientRect().left < 2 * vh) {
+	if (canvas_left_right_client_loc - canvasw.getBoundingClientRect().left < 4 * vh) {
 		canvasw.scrollLeft -= vh;
 	}
 })
