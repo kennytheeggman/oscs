@@ -14,6 +14,7 @@ const close_editor_button = document.getElementById("close-editor");
 const editor = document.getElementById("editor");
 const fade_up_input = document.getElementById("timeup");
 const end_time_input = document.getElementById("follow");
+const delete_button = document.getElementById("delete");
 
 var width = scrollbar.offsetWidth;
 var height = labels.offsetHeight;
@@ -164,12 +165,12 @@ fade_up_input.oninput = (evt) => {
 	let min = Math.floor((new_time) / 60).toString().padStart(1, "0");
 	let sec = (Math.floor(new_time) % 60).toString().padStart(2, "0");
 	let dec = Math.round(((new_time) - Math.floor(new_time)) * 100).toString().padStart(2, "0");
+	rerender_timeline();
 	fade_up_input.value = min + ":" + sec + "." + dec;
 	fade_up_input.setSelectionRange(4, 4);
 	if (selected_node != -1) {
 		times[selected_node] = new_time;
 	}
-	rerender_timeline();
 };
 end_time_input.onclick = () => {
 	last_eligible_end = starts[selected_node];
@@ -177,11 +178,11 @@ end_time_input.onclick = () => {
 	temp_start = 0;
 	after_dec = false;
 	after_dec_2 = false;
-	starts[selected_node] = (check_end_eligibility(0)) ? 0 : starts[selected_node];
+// 	starts[selected_node] = (check_end_eligibility(0)) ? 0 : starts[selected_node];
 	rerender_timeline();
 	end_time_input.setSelectionRange(4, 4);
 }
-var temp_start = starts[0], last_eligible_end = starts[0];
+var temp_start, last_eligible_end;
 end_time_input.oninput = (evt) => {
 	last_eligible_end = starts[selected_node];
 	let new_time = handle_time_input(evt) 
@@ -205,21 +206,22 @@ end_time_input.onchange = (evt) => {
 	temp_start = last_eligible_end;
 	console.log(temp_start);
 	rerender_timeline();
+	end_time_input.setSelectionRange(4, 4);
 }
 function check_end_eligibility(t) {
 	let eligible = true;
 	for (let i = 1; i < starts.length; i++) {
-		if (i == selected_node) {
+		if (i == selected_node + 1) {
 			continue;
 		}
-		if (t - starts[i-1] < times[selected_node] && t >= starts[i-1]) {
+		if (t < times[selected_node] + starts[i-1] && t >= starts[i-1]) {
 			eligible = false;
 		}
-		else if (starts[i] - t < times[i] && t <= starts[i]) {
+		else if (t >= starts[i] - times[i] && t < starts[i]) {
 			eligible = false;
 		}
 	}
-	if (t < times[0]) {
+	if (t < times[selected_node] || (t > starts[0] - times[0] && t <= starts[0])) {
 		eligible = false;
 	}
 	return eligible;
@@ -329,11 +331,14 @@ function add_cue_eligible() {
 		add_button.setAttribute("disabled", "");
 	}
 }
-function open_editor(cue) {
+function open_editor(cue, update_end_time) {
 	if (cue == -1) {
 		editor.style.transform = "translate(100%, 0)";
+		delete_button.setAttribute("disabled", "");
 		return;
 	}
+	delete_button.removeAttribute("disabled");
+	let newly_opened = editor.style.transform == "translate(100%, 0px)" || update_end_time;
 	editor.style.transform = "";
 	let color_inputs = document.querySelectorAll('div.lighting>input[type="color"]');
 	let intensity_inputs = document.querySelectorAll('div.lighting>input[type="number"]');
@@ -343,10 +348,23 @@ function open_editor(cue) {
 	let description_input = document.getElementById("desc");
 	let fade_time_input = document.getElementById("timeup");
 	let end_time_input = document.getElementById("follow");
+	
+	description_input.onchange = () => {
+	    descriptions[cue] = description_input.value;
+	    header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+	}
+	cue_number_input.onchange = () => {
+	    numbers[cue] = cue_number_input.value;
+	    header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+	}
 
 	cue_number_input.value = numbers[cue];
 	description_input.value = descriptions[cue];
 	header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+	
+	if (newly_opened) {
+    	temp_start = starts[cue];
+	}
 	
 	let fmin = Math.floor((times[cue]) / 60).toString().padStart(1, "0");
 	let fsec = (Math.floor(times[cue]) % 60).toString().padStart(2, "0");
@@ -360,6 +378,35 @@ function open_editor(cue) {
 	end_time_input.value = emin + ":" + esec + "." + edec;
 	
 }
+function autosort_cues() {
+    let swap_with_previous = (arr, index) => {
+        let temp = arr[index]
+        arr[index] = arr[index-1]
+        arr[index-1] = temp;
+        return arr;
+    }
+    let selected_cue = numbers[selected_node];
+    for (let j = 0; j < starts.length; j++) {
+        for (let i = 1; i < starts.length; i++) {
+            if (starts[i] < starts[i-1]) {
+                console.log(i, selected_node);
+                if (i == selected_node) selected_node--;
+                starts = swap_with_previous(starts, i);
+                times = swap_with_previous(times, i);
+                descriptions = swap_with_previous(descriptions, i);
+                numbers = swap_with_previous(numbers, i);
+                for (let k = 0; k < tracks.length; k++) {
+                    tracks[k] = swap_with_previous(tracks[k], i);
+                }
+            }
+        }
+    }
+    for (let i = 0; i < numbers.length; i++) {
+        if (numbers[i] == selected_cue) {
+            selected_node = i;
+        }
+    }
+}
 
 
 // ----------------------------- timeline operation -----------------------------  //
@@ -367,9 +414,10 @@ function open_editor(cue) {
 function reset_timeline() {
 	set_lights(lights);
 }
-function rerender_timeline() {
+function rerender_timeline(update_end_time) {
 	let save_scrollx = canvasw.scrollLeft;
 	let save_scrolly = keys.scrollTop;
+	autosort_cues();
 	sync_current_time();
 	ctx.fillStyle = play_marker_color;
 	ctx.fillRect(ti_to_xy(current_time)[0], 0, play_marker_width, canvas.height);
@@ -381,7 +429,7 @@ function rerender_timeline() {
 	keys.scrollTop = save_scrolly;
 	set_cues(numbers, descriptions, times, starts);
 	add_cue_eligible();
-	open_editor(selected_node);
+	open_editor(selected_node, update_end_time);
 
 }
 // depends on: 	label_odd_color, label_even_color, label_height, update_dims
@@ -518,15 +566,17 @@ canvas.addEventListener("mousedown", (evt) => {
 			held_track = i;
 		}
 	}
+	let update_end_time = false;
 	let distance_from_play = Math.abs(evt.offsetX - current_time * space_per_second);
 	if (held_node == -1 && distance_from_play < 2 * vh) {
 	    play_held = true;
 	}
 	else {
+	    update_end_time = true;
 	    selected_node = held_node;
 	    selected_track = held_track;
 	}
-	rerender_timeline();
+	rerender_timeline(update_end_time);
 });
 canvas.addEventListener("mouseup", () => {
 	held = false;
@@ -612,6 +662,7 @@ canvas.addEventListener("mousemove", (evt) => {
 		}
 		starts[held_node] = new_node[0];
 		tracks[held_track][held_node] = new_node[1];
+		temp_start = new_node[0]
 		rerender_timeline();
 	}
 	else if (play_held) {
