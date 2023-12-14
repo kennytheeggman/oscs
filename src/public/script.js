@@ -305,19 +305,19 @@ function render_scene() {
 	preview.width = preview.width;
 	calculate_current_params();
 	track_counter = 0;
-	for (let i = -20*vh, c = 0; i <= 20*vh; i+=10*vh, c++) {
+	for (let i = -20*vh, c = 0; c < 5;  i += 10*vh, c++) {
 		draw_top(i + preview.width / 2, 10 * vh, current_color[track_counter], current_intensity[track_counter]);
 		track_counter++;
 	}
-	for (let i = -25*vh; i <= 25*vh; i+= 10*vh) {
+	for (let i = -25*vh, c = 0; c < 6;  i += 10*vh, c++) {
 		draw_top(i + preview.width / 2, 18 *vh, current_color[track_counter], current_intensity[track_counter]);
 		track_counter++;
 	}
-	for (let i = -25*vh; i <= 25*vh; i+= 10*vh) {
+	for (let i = -25*vh, c = 0; c < 6;  i += 10*vh, c++) {
 		draw_tip(i + preview.width / 2, 30 *vh, current_color[track_counter], current_intensity[track_counter]);
 		track_counter++;
 	}
-	for (let i = -5*vh; i <= 5*vh; i+= 10*vh) {
+	for (let i = -5*vh, c = 0; c < 2;  i += 10*vh, c++) {
 		draw_tip(i + preview.width / 2, 45 * vh, current_color[track_counter], current_intensity[track_counter]);
 		track_counter++;
 	}
