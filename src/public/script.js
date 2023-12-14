@@ -431,6 +431,7 @@ go_button.onclick = () => {
 	player = setInterval(() => {
 		current_time += dt;
 		if (current_time > time) {
+			paused = true;
 			current_time = 0;
 			rerender_timeline();
 			clearInterval(player);
