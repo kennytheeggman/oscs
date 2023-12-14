@@ -205,14 +205,14 @@ function calculate_current_params() {
 		interval_start_time = starts[next_node-1];
 	}
 	if (next_node == -1) {
-	    let intenss = [], colorss = [];
-	    for (let i = 0; i < 19; i++) {
-	        intenss.push(0);
-	        colorss.push("#ffffff");
-	    }
-	    current_intensity = intenss;
-	    current_color = colorss
-	    return;
+		let intenss = [], colorss = [];
+		for (let i = 0; i < 19; i++) {
+			intenss.push(0);
+			colorss.push("#ffffff");
+		}
+		current_intensity = intenss;
+		current_color = colorss
+		return;
 	}
 	let fade_end_time = interval_start_time + times[next_node];
 	let proportion = 1;
@@ -243,72 +243,57 @@ function calculate_current_params() {
 	console.log(current_color[0]);
 }
 function RGBToHSL(r,g,b) {
-// Make r, g, and b fractions of 1
 	r /= 255;
 	g /= 255;
 	b /= 255;
-
 	let cmin = Math.min(r,g,b),
 		cmax = Math.max(r,g,b),
 		delta = cmax - cmin,
 		h = 0,
 		s = 0,
 		l = 0;
-
-  if (delta == 0)
-    h = 0;
-  // Red is max
-  else if (cmax == r)
-    h = ((g - b) / delta) % 6;
-  // Green is max
-  else if (cmax == g)
-    h = (b - r) / delta + 2;
-  // Blue is max
-  else
-    h = (r - g) / delta + 4;
-
-  h = Math.round(h * 60);
-
-  // Make negative hues positive behind 360°
-  if (h < 0)
-      h += 360;
-
-  l = (cmax + cmin) / 2;
-
-  // Calculate saturation
-  s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-
-  // Multiply l and s by 100
-  s = +(s * 100).toFixed(1);
-  l = +(l * 100).toFixed(1);
+	if (delta == 0)
+	h = 0;
+	else if (cmax == r)
+		h = ((g - b) / delta) % 6;
+	else if (cmax == g)
+		h = (b - r) / delta + 2;
+	else
+		h = (r - g) / delta + 4;
+	h = Math.round(h * 60);
+	if (h < 0)
+		h += 360;
+	l = (cmax + cmin) / 2;
+	s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+	s = +(s * 100).toFixed(1);
+	l = +(l * 100).toFixed(1);
 	return [h, s, l];
 }
 function HSLToRGB(h,s,l) {
 	s /= 100;
 	l /= 100;
-
 	let c = (1 - Math.abs(2 * l - 1)) * s,
 		x = c * (1 - Math.abs((h / 60) % 2 - 1)),
 		m = l - c/2,
 		r = 0,
 		g = 0,
 		b = 0;
-  if (0 <= h && h < 60) {
-    r = c; g = x; b = 0;  
-  } else if (60 <= h && h < 120) {
-    r = x; g = c; b = 0;
-  } else if (120 <= h && h < 180) {
-    r = 0; g = c; b = x;
-  } else if (180 <= h && h < 240) {
-    r = 0; g = x; b = c;
-  } else if (240 <= h && h < 300) {
-    r = x; g = 0; b = c;
-  } else if (300 <= h && h < 360) {
-    r = c; g = 0; b = x;
-  }
-  r = Math.round((r + m) * 255);
-  g = Math.round((g + m) * 255);
-  b = Math.round((b + m) * 255);
+	if (0 <= h && h < 60) {
+		r = c; g = x; b = 0;  
+	} else if (60 <= h && h < 120) {
+		r = x; g = c; b = 0;
+	} else if (120 <= h && h < 180) {
+		r = 0; g = c; b = x;
+	} else if (180 <= h && h < 240) {
+		r = 0; g = x; b = c;
+	} else if (240 <= h && h < 300) {
+		r = x; g = 0; b = c;
+	} else if (300 <= h && h < 360) {
+		r = c; g = 0; b = x;
+	}
+	r = Math.round((r + m) * 255);
+	g = Math.round((g + m) * 255);
+	b = Math.round((b + m) * 255);
 	return [r, g, b];
 }
 function render_scene() {
@@ -754,12 +739,12 @@ function open_editor(cue, update_end_time) {
 	let end_time_input = document.getElementById("follow");
 	
 	description_input.onchange = () => {
-	    descriptions[cue] = description_input.value;
-	    header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+		descriptions[cue] = description_input.value;
+		header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
 	}
 	cue_number_input.onchange = () => {
-	    numbers[cue] = parseFloat(cue_number_input.value);
-	    header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
+		numbers[cue] = parseFloat(cue_number_input.value);
+	header_text.innerHTML = "Cue " + numbers[cue] + " - " + descriptions[cue];
 	}
 
 	cue_number_input.value = numbers[cue];
@@ -1069,7 +1054,7 @@ canvas.addEventListener("mousedown", (evt) => {
 	}
 	rerender_timeline(update_end_time);
 });
-canvas.addEventListener("mouseup", () => {
+document.addEventListener("mouseup", () => {
 	held = false;
 	play_held = false;
 	held_node = -1;

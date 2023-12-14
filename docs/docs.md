@@ -1,3 +1,3 @@
-# Documentation
+# Wiki
 
-Documentation is written here
+No wiki is written, as this program is meant to be run as a single package

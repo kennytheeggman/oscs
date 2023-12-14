@@ -1,50 +1,95 @@
-# Template
+# OSCS
 
-This repository is a template for any new repositories created abiding 
-formatting convention
+This application is built to assist with lighting iteration for the Ion
+XE board.
 
-## Code and Documentation
+## Features
 
-Consistent documentation structure is essential to ensure code
-readability and easier inter team coordination. Using git is a simple
-solution to many documentation issues, such as version tracking, viewing
-code segment authors, and issue tracking.
+The following section explains the features of this application
 
-In code, formatting should be decided on a language by language basis,
-and logging should be performed using a dedicated logging system and not
-stdio. Unit tests should be available whenever practical. Rather than
-using excessive commenting, code should be written as intuitively as
-possible. If code is obscure, the theory behind its operation should be
-documented.
+### 1. Cue visualization
 
-API documentation should be comprehensive and unambiguous for all
-classes and any public functions. This can be generated from source code
-using documentation generators, which is ideal. In API documentation,
-also document changes made to the API that break backwards
-compatibility. API names should also be intuitive and descriptive, to
-ensure clarity in API calls.
+The timeline provides a simple cue visualization system, showing the 
+intensities of each of the cues at every time. Cue playback is also 
+visualized on the timeline.
 
-For each repository, there should be no code in the root directory. In
-the root directory, metadata files should be present, for example the
-README.md, LICENSE.md, CHANGELOG.md, and a dependency file such as
-requirements.txt, Makefile, CMakeLists.txt, poetry.lock, build.gradle,
-pyproject.toml, or others. If no dependency manager exists for the
-chosen language, any dependencies should be listed or included as git
-submodules in the lib/ directory. The .gitignore file, and any other
-files required for library operation may be placed in the root
-directory. As a rule of thumb, no execution environment files or
-environment specific files may be placed in the repository unless the
-execution environment is guaranteed. IDE configuration files may be
-placed in the root directory.
+### 2. Playback
 
-Source code in each repository should be under the src directory.
-Optionally, installation, build, or dependency management scripts should
-be placed under the scripts/ directory. Code examples should be put
-under the examples/ directory. Documentation markdown files should be
-found under the docs/ directory. Finally, tests should be found under
-the test/ directory, unless automated testing processes mandate
-otherwise. Any directories required for library operation may be placed
-in the root directory.
+Cues can be played back in real time by pressing the "Go" button. The
+"Pause" button will pause playback. Drag the marker around to change the 
+playback start point. The "Stop" button will pause playback and reset the
+marker to 0 seconds.
+
+### 3. Cue editing
+
+When the marker is at a location where a cue can be added, the "Add"
+button will be enabled. When clicked, it will create a new cue at the 
+marker position. When a cue is selected, the "Delete" button will be
+enabled. The delete button must be clicked twice in order to delete
+the cue. 
+
+Cues can be reordered by changing the end time of cues in 
+the editor. The heading fields for each of the lighting sections, when
+edited, will change the values of the fields for each of the sub lights.
+Changes are reflected live. 
+
+### 4. Undoing and Redoing
+
+Ctrl-Z and Ctrl-Y keybinds will undo and redo previous changes up to 50
+moves respectively. A change made after a sequence of undoing will 
+overwrite any redoable changes.
+
+## Running instructions
+
+The following section details the instructions to execute and run the program
+
+### 1. Docker
+
+#### 1.1 Script
+
+Run the file with the script by executing:
+
+`$ sh ./scripts/run.sh`
+
+If uuidgen is not present on your machine, or is generated with a return 
+carriage on your platform, this script may not work.
+
+#### 1.2 Terminal
+
+Build the image from the Dockerfile to run:
+
+`$ docker build -t oscs`
+
+Run with port 5000 exposed:
+
+`$ docker run --name oscs -d -p 5000:5000 oscs`
+
+Be aware that, depending on the Docker container's firewall rules, the port may
+have to be changed in the Dockerfile or exposed in the firewall.
+
+### 2. Windows installation
+
+Create a python virtual environment using:
+
+`$ python -m virtualenv ./venv`
+`$ venv/Scripts/acivate`
+
+Once created and activated, install the python dependencies with pip:
+
+`$ pip install requirements.txt`
+
+To run the program, the entry point is at main.py:
+
+With gunicorn:
+
+`$ gunicorn --bind 0.0.0.0:5000 src.main:app`
+
+With flask Weurkzeug:
+
+`$ python src/main.py`
+
+Note that this program is only validated for python version 3.11. It is not 
+guaranteed to work on any other python version.
 
 <!-- The following is an example of the file structure of a repository: -->
 <!-- 
