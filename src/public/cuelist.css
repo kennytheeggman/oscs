@@ -1,6 +1,6 @@
 #cuelist {
 	display: grid;
-	grid-template-rows: 6vh calc(100% - 12vh) 6vh;
+	grid-template-rows: 5vh calc(100% - 11vh) 6vh;
 }
 
 #headers {
@@ -61,8 +61,12 @@ input[type="text"], input[type="number"], input[type="color"] {
 	outline: none;
 	font-size: 1.35vh;
 	padding: 0 1vh;
+	background-color: var(--gray00);
 	border: 0.1vh solid var(--gray300);
 	font-family: Nunito, sans-serif;
+}
+input[type="color"] {
+	cursor: pointer;
 }
 input[type="text"][disabled], input[type="number"], input[type="color"] {
 	color: var(--gray300);
@@ -128,6 +132,18 @@ input[type="button"][disabled]:hover {
 	background-color: var(--gray00);
 	display: grid;
 	grid-template-columns: 15% 45% 20% 20%;
+	cursor: pointer;
+	outline-offset: -0.3vh;
+	outline: 0.3vh solid transparent;
+	transition-duration: 0.3s;
+}
+#cues>div:hover {
+	outline-color: var(--gray400);
+	background-color: var(--gray100);
+}
+#cues>div:nth-child(even):hover {
+	outline-color: var(--gray400);
+	background-color: var(--gray200);
 }
 #cues>div>p {
 	padding: 0 2vh;
@@ -141,6 +157,7 @@ input[type="button"][disabled]:hover {
 	z-index: 10;
 	grid-template-rows: 5vh calc(100% - 5vh);
 	height: calc(100% - 5vh);
+	/* transform: translate(100%, 0); */
 	transition-duration: 0.3s;
 	transition-timing-function: ease-in-out;
 }
@@ -238,4 +255,5 @@ div#timing {
 #value-editor>div>div>input[type="color"]::-webkit-color-swatch {
 	border-radius: 0 1vh 1vh 0;
 	transform: scale(2);
+	opacity: 0.5;
 }

@@ -65,7 +65,9 @@ body, html {
 	grid-row-start: 1;
 	grid-row-end: 2;
 
-	background-color: var(--green);
+	background-color: var(--gray00);
+	border: 0.2vh solid var(--gray200);
+	z-index: 15;
 }
 #timeline {
 	display: inline-grid;
