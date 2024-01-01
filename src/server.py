@@ -45,6 +45,30 @@ def text_js():
 
     return Response(text, mimetype="text/javascript")
 
+@app.route("/Main.js")
+def text_main_js():
+    text = ""
+    with open("src/public/Main.js", "r") as f:
+        text = f.read()
+
+    return Response(text, mimetype="text/javascript")
+
+@app.route("/Renderer.js")
+def text_renderer_js():
+    text = ""
+    with open("src/public/Renderer.js", "r") as f:
+        text = f.read()
+
+    return Response(text, mimetype="text/javascript")
+
+#json routing
+@app.route("/config.json")
+def text_json():
+    text = ""
+    with open("src/public/config.json", "r") as f:
+        text = f.read()
+
+    return Response(text, mimetype="text/json")
 
 
 if __name__ == "__main__":

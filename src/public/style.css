@@ -54,7 +54,7 @@ body, html {
 	
 	display: grid;
 	grid-template-rows: 65% 35%;
-	grid-template-columns: calc(100vw - 60vh) 60vh;
+	grid-template-columns: calc(100vw - min(100vw, 60vh)) calc(min(100vw, 60vh));
 
 	background-color: var(--gray200);
 }

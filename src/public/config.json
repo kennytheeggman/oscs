@@ -1,0 +1,149 @@
+{
+	"dependency": {
+		"primary": "#81d4fa",
+		"gray00": "#ffffff",
+		"gray100": "#f9fbff",
+		"gray150": "#f4f6fb",
+		"gray200": "#eef1f6",
+		"gray300": "#e1e5ee",
+		"gray400": "#767b91",
+		"gray500": "#4f546c",
+		"gray600": "#2a324b",
+		"gray700": "#161d34",
+		"yellow": "#fff0c2",
+		"yellow font": "#a68b00",
+		"red": "#ffcdd2",
+		"red font": "#c62828",
+		"green": "#c8e6c9",
+		"green font": "#388e3c",
+		"blue": "#e1f5fe",
+		"blue font": "#4fc3f7",
+		"track node color": "#4fc3f7",
+		"track node selected color": "#0a99db",
+		"track fill selected color": "#0a99db55",
+		"track fill color": "#4fc3f755",
+		"play marker color": "#a68b00",
+		"preview outline color": "#767b91",
+		"undo depth": 50,
+		"starting cue number": 1,
+		"minor lines per major line": 5,
+		"playback dt": 0.01,
+		"lights": [
+			"Upper Top 1", 
+			"Upper Top 2",
+			"Upper Top 3",
+			"Upper Top 4",
+			"Upper Top 5",
+			"Lower Top 1",
+			"Lower Top 2",
+			"Lower Top 3",
+			"Lower Top 4",
+			"Lower Top 5",
+			"Lower Top 6",
+			"Tip 1",
+			"Tip 2",
+			"Tip 3",
+			"Tip 4",
+			"Tip 5",
+			"Tip 6",
+			"Follow 1",
+			"Follow 2"
+		]
+	},
+
+	"length": {
+		"document.getElementById('scrollbar-wrapper').scrollWidth": {
+			"canvas width": 1
+		},
+		"document.getElementById('labels').offsetHeight": {
+			"canvas height": 1
+		},
+		"document.getElementById('preview').clientWidth": {
+			"preview width": 1
+		},
+		"document.getElementById('preview').clientHeight": {
+			"preview height": 1
+		},
+		"document.getElementById('canvas-wrapper').scrollLeft": {
+			"canvas x scroll": 1
+		},
+		"document.getElementById('keys').scrollTop": {
+			"canvas y scroll": 1
+		},
+		"window.innerHeight / 100": {
+			"label height": 5,
+			"axis label separation": 8,
+			"space per second": 8,
+			"major axis line width": 0.2,
+			"minor axis line width": 0.1,
+			"track start offset": 0.5,
+			"track size": 4,
+			"track node offset": 0.1,
+			"track node line width": 0.2,
+			"track node radius": 0.4,
+			"play marker width": 0.2,
+			"top": [
+				[-2, 2],
+				[-2, -1],
+				[-1, -2],
+				[-1, -2.5],
+				[1, -2.5],
+				[1, -2],
+				[2, -1],
+				[2, 2],
+				[-2, 2]
+			],
+			"tip arc": [0, 4, 2],
+			"tip": [
+				[-2, 4],
+				[-2, 2],
+				[-1.5, 1],
+				[-1.5, -1],
+				[-2, -2],
+				[-2, -3],
+				[2, -3],
+				[2, -2],
+				[1.5, -1],
+				[1.5, 1],
+				[2, 2],
+				[2, 4]
+
+			],
+			"top row xoffset": -20, 
+			"top row yoffset": 10,
+			"middle row xoffset": -25,
+			"middle top row yoffset": 18,
+			"middle bottom row yoffset": 30,
+			"bottom row xoffset": -5,
+			"bottom row yoffset": 45,
+			"light gap": 10,
+			"play marker snap range": 2,
+			"autoscroll range": 4
+		}
+	},
+
+	"element": {
+		"canvas": "#timeline-canvas",
+		"canvas wrapper": "#canvas-wrapper",
+		"preview": "#preview-canvas",
+		"preview wrapper": "#preview",
+		"scrollbar": "#scrollbar-wrapper",
+		"scroll": "#scrollbar",
+		"label": "#labels",
+		"keys": "#keys",
+		"axis": "#axis",
+		"cues": "#cues",
+		"options": "#options",
+		"editor": "#editor",
+		"player": "#time",
+		"close editor": "#close-editor",
+		"add": "#add",
+		"go": "#go",
+		"pause": "#pause",
+		"stop": "stop",
+		"fade up": "timeup",
+		"end time": "follow",
+		"color": "div.lighting>input[type=\"color\"]",
+		"intensity": "div.lighting>input[type=\"number\"]"
+	}
+}
