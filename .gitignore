@@ -2,3 +2,5 @@
 run.exe
 .dockerignore
 *.swp
+__pycache__
+venv

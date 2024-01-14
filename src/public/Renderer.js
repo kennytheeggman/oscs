@@ -27,7 +27,7 @@ export class Renderer {
 	update() {
 		this.dependencies.forEach((dependency) => dependency.update());
 		this.updaters.forEach((updater, i) => {
-			updater[1](this.state[updater[0]], this.nonlocal, this.dependencies);
+			updater[2](this.state[updater[0]], this.nonlocal, this.dependencies);
 		});
 	}
 	

@@ -118,7 +118,8 @@
 			"bottom row yoffset": 45,
 			"light gap": 10,
 			"play marker snap range": 2,
-			"autoscroll range": 4
+			"autoscroll range": 4,
+			"track left offset": 20
 		}
 	},
 

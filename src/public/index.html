@@ -11,6 +11,19 @@
 	</style>
 </head>
 <body>
+	<div id="header" style="height: 3vh"> 
+		<input id="toggle_modal" type="button" value="Project" style="font-size: 1.2vh; margin-left: 1vh; margin-top: 0.5vh; margin-bottom: 0.5vh; height: 2vh;">
+	</div>
+	<dialog id="project_modal" style="width: 50vh; border: none; border-radius: 3vh;">
+		<div id="modalmain" style="width: 100%; height: 100%; display: grid; grid-template-columns: 80% 20%;">
+			<p>Import show file</p> <input id="show_surface" type="button" value="Browse" style="align-self: center">
+			<p>Import music file</p> <input id="music_surface" type="button" value="Browse" style="align-self: center">
+			<p>Save show file</p> <input id="save" type="button" value="Save" style="align-self: center">
+		</div>	
+		<input id="show" type="file" style="display: none;">
+		<input id="music" type="file" style="display: none;">
+		<audio id="music_player" style="display: none;">
+	</dialog>
 	<div id="main">
 		<div id="preview">
 			<canvas id="preview-canvas"></canvas>
@@ -20,7 +33,6 @@
 				<div id="options">
 					<input type="button" id="intensity" value="Intensity">
 					<input type="button" id="color" value="Color">
-					<!-- <input type="button" id="focus" value="Focus"> -->
 				</div>
 				<div id="scrollbar-wrapper">
 					<div id="scrollbar"></div>	
@@ -117,6 +129,43 @@
 						<input type="color" value="#ffffff">
 					</div>
 				</div>
+				<div id="middletops">
+					<div class="lighting">
+						<p>Middle Tops</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>1</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>2</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>3</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>4</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>5</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>6</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+				</div>
 				<div id="lowertops">
 					<div class="lighting">
 						<p>Lower Tops</p>
@@ -190,6 +239,21 @@
 						<input type="number" min="0" max="100">
 						<input type="color" value="#ffffff">
 					</div>
+					<div class="lighting">
+						<p>7</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>8</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
+					<div class="lighting">
+						<p>9</p>
+						<input type="number" min="0" max="100">
+						<input type="color" value="#ffffff">
+					</div>
 				</div>
 				<div id="follows">
 					<div class="lighting">
@@ -213,7 +277,7 @@
 		</div>
 	</div>
 	<script src="script.js"></script>
-	<script src="Main.js" type="module"></script>
-	<script src="Renderer.js" type="module"></script>
+	<!-- <script src="Main.js" type="module"></script>
+	<script src="Renderer.js" type="module"></script> -->
 </body>
 </html>

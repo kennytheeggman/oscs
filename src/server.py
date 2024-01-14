@@ -61,6 +61,15 @@ def text_renderer_js():
 
     return Response(text, mimetype="text/javascript")
 
+@app.route("/Cues.js")
+def text_cues_js():
+    text = ""
+    with open("src/public/Cues.js", "r") as f:
+        text = f.read()
+
+    return Response(text, mimetype="text/javascript")
+
+
 #json routing
 @app.route("/config.json")
 def text_json():
