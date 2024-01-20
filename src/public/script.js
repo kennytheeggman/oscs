@@ -164,6 +164,31 @@ var current_intensity = [];
 var current_color = [];
 
 
+
+// ----------------------------- keyboard shortcuts ---------------------------- //
+
+document.addEventListener("keydown", (e) => {
+	let arrowdt = 0.01;
+	if (e.ctrlKey) arrowdt = 0.1;
+	current_time = Math.round(current_time * 100) * 0.01;
+	if (e.which == 39) {
+		e.preventDefault();
+		if (current_time + arrowdt <= time) current_time += arrowdt;
+		rerender_timeline();
+	}
+	else if (e.which == 37) {
+		e.preventDefault();
+		if (current_time - arrowdt >= 0) current_time -= arrowdt;
+		rerender_timeline();
+	}
+	else if (e.code === "Space") {
+		e.preventDefault();
+		if (paused) go_button.click();
+		else pause_button.click();
+		rerender_timeline();
+	}
+});
+
 // ----------------------------- file operations ---------------------------- //
 
 var modal_open = false;
@@ -205,7 +230,6 @@ in2.addEventListener("change", () => {
 	let reader = new FileReader();
 	let res = true;
 	reader.addEventListener("load", () => {
-		console.log(reader.result);
 		document.getElementById("music_player").setAttribute("src", reader.result);
 	});
 	reader.addEventListener("error", () => {
@@ -251,6 +275,216 @@ function rgb2hsv (r, g, b) {
     return [Math.round(h * 360), percentRoundFn(s * 100), percentRoundFn(v * 100)];
 }
 
+function rgbil2xy(r, g, b, i, l) {
+	const ks = [0.694/0.303, 0.190/0.715, 0.127/0.085, 0.159/0.021, 0.415/0.547];
+	const js = [1, 1, 1, 1, 1];
+	const ds = [1/0.303, 1/0.715, 1/0.085, 1/0.021, 1/0.547];
+
+	const x_num = ks[0]*r*4 + ks[1]*g*4.4 + ks[2]*b + ks[3]*i*0.35 + ks[4]*l*16.2;
+	const y_num = js[0]*r*4 + js[1]*g*4.4 + js[2]*b + js[3]*i*0.35 + js[4]*l*16.2;
+	const denom = ds[0]*r*4 + ds[1]*g*4.4 + ds[2]*b + ds[3]*i*0.35 + ds[4]*l*16.2;
+
+	let x = x_num/denom, y = y_num/denom;
+	return [x, y];
+}
+function xy2rgbil(x, y) {
+	let guess = [0.5, 0.5, 0.5, 0.5, 0.5];
+	let calc_err = (x1, y1, x2, y2) => Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
+	for (let i = 0; i < 500; i++) {
+		const dc = i < 10 ? 0.1 : i < 100 ? 0.01 : 0.001;
+        	const current_err = calc_err(...rgbil2xy(...guess), x, y);
+			
+		let bitmask = 0;
+
+		let is_bitmask_valid = (bm) => 
+			((bm & 0b0000000011) >> 0) < 3 &&
+			((bm & 0b0000001100) >> 2) < 3 &&
+			((bm & 0b0000110000) >> 4) < 3 &&
+			((bm & 0b0011000000) >> 6) < 3 &&
+			((bm & 0b1100000000) >> 8) < 3;
+
+		let errors = [];
+
+		for (let b = 0; b < 0b1111111111; b++) {
+			if (!is_bitmask_valid(b)) continue;
+			let copy = [...guess];
+			const moves = [(b & 0b0000000011) >> 0, (b & 0b0000001100) >> 2, (b & 0b0000110000) >> 4, (b & 0b0011000000) >> 6, (b & 0b1100000000) >> 8];
+			moves.forEach((option, index) => {
+				if (option == 1 && copy[index] + dc < 1) copy[index] += dc;
+				if (option == 2 && copy[index] - dc > 0) copy[index] -= dc;
+			});
+			let err = calc_err(...rgbil2xy(...copy), x, y);
+			errors.push([b, err]);
+		}
+
+		errors.sort((a, b) => a[1] - b[1]);
+		let minim = errors[0];
+		const moves = [(minim[0] & 0b0000000011) >> 0, (minim[0] & 0b0000001100) >> 2, (minim[0] & 0b0000110000) >> 4, (minim[0] & 0b0011000000) >> 6, (minim[0] & 0b1100000000) >> 8];
+		moves.forEach((option, index) => {
+			if (option == 1) guess[index] += dc;
+			if (option == 2) guess[index] -= dc;
+		});
+
+	}
+	
+	let max = Math.max(...guess);
+	guess.forEach((g, i) => guess[i] /= max);
+
+	return guess;
+}
+
+function xyY2rgb(x, y, YY) {
+	let [X, Y, Z] = xyY2XYZ(x, y, YY);
+	return RGB2XYZ(X, Y, Z);
+	let max = Math.max(r, g, b);
+	return [r / max * 255, g / max * 255, b / max * 255];
+}
+function rgb2xyY(r, g, b) {
+	let [X, Y, Z] = XYZ2RGB(r, g, b);
+	return XYZ2xyY(X, Y, Z);
+}
+function scalexy(x, y) {
+	let xscaletarget = x >= 1 ? 1 : x <= 0 ? 0 : x;
+	let yscaletarget = y >= 1 ? 1 : y <= 0 ? 0 : y;
+	
+	let tx = x - 0.312;
+	let ty = y - 0.329;
+	let txscale = xscaletarget - 0.312;
+	let tyscale = yscaletarget - 0.329;
+
+	let xscaler = tx == 0 ? 1 : txscale/tx;
+	let yscaler = ty == 0 ? 1 : tyscale/ty;
+
+	let scaler = Math.min(xscaler, yscaler);
+
+	let newx = tx * scaler + 0.312;
+	let newy = ty * scaler + 0.329;
+
+	return [newx, newy];
+
+}
+function rgbil2rgb(r, g, b, i, l) {
+	let [x1, y1] = rgbil2xy(r, g, b, i, l);
+	return xytorgb(x1, y1, 1);
+}
+function rgb2rgbil(r, g, b) {
+	let [x1, y1] = rgbtoxy(r, g, b);
+	return xy2rgbil(x1, y1);
+}
+function xyY2XYZ(x, y, YY) {
+	let X, Y, Z;
+	if (y < 0.000001) {
+		X = Y = Z = 0.0;
+	}
+	else {
+		X = (x * YY) / y;
+		Y = YY;
+		Z = ((1.0 - x - y) * YY) / y;
+	}
+	return [X, Y, Z];
+}
+function XYZ2xyY(X, Y, Z) {
+	let x = X / (X + Y + Z);
+	let y = Y / (X + Y + Z);
+	let YY = Y;
+	return [x, y, YY];
+}
+
+function XYZ2RGB(R, G, B) {
+	let compand = (c) => {
+		if (c <= 0.04045) return c / 12.92;
+		return Math.pow((c + 0.055) / 1.055, 2.4);
+	}
+	R = compand(R);
+	G = compand(G);
+	B = compand(B);
+	const m00 = 0.4124564,
+		m01 = 0.3575761,
+		m02 = 0.1804375,
+		m10 = 0.2126729,
+		m11 = 0.7151522,
+		m12 = 0.0721750,
+		m20 = 0.0193339,
+		m21 = 0.1191920,
+		m22 = 0.9503041;
+
+	let X = m00 * R + m10 * G + m20 * B;
+	let Y = m01 * R + m11 * G + m21 * B;
+	let Z = m02 * R + m12 * G + m22 * B;
+
+	X *= 1.474824318906029;
+	Y *= 0.8389822708783464;
+	Z *= 0.9051583459734448;
+
+	//R *= 2.54864077941593;
+	//G *= 0.669565447792172;
+	//B *= 0.7138410938658518;
+	
+	return [X, Y, Z];
+}
+function RGB2XYZ(X, Y, Z) {
+	let compand = (c) => {
+		if (c <= 0.0031308) return 12.92 * c;
+		return 1.055 * Math.pow(c, 1/2.4) - 0.055;
+	}
+	//R = compand(R);
+	//G = compand(G);
+	//B = compand(B);
+	//
+	
+	X /= 1.474824318906029;
+	Y /= 0.8389822708783464;
+	Z /= 0.9051583459734448;
+
+	const m00 = 3.2404542,
+		m01 = -1.5371385,
+		m02 = -0.4985314,
+		m10 = -0.9692660,
+		m11 = 1.8760108,
+		m12 = 0.0415560,
+		m20 = 0.0556434,
+		m21 = -0.2040259,
+		m22 = 1.0572252
+
+	let R = m00 * X + m10 * Y + m20 * Z;
+	let G = m01 * X + m11 * Y + m21 * Z;
+	let B = m02 * X + m12 * Y + m22 * Z;
+
+	//R *= 2.54864077941593;
+	//G *= 0.669565447792172;
+	//B *= 0.7138410938658518;
+
+	return [compand(R), compand(G), compand(B)];
+}
+function rgbtoxy(r, g, b) {
+    r = (r > 0.04045) ? Math.pow((r + 0.055) / (1.0 + 0.055), 2.4) : (r / 12.92); 
+    g = (g > 0.04045) ? Math.pow((g + 0.055) / (1.0 + 0.055), 2.4) : (g / 12.92); 
+    b = (b > 0.04045) ? Math.pow((b + 0.055) / (1.0 + 0.055), 2.4) : (b / 12.92);
+
+    
+    let X = r * 0.7161046   + g * 0.1009296   + b * 0.1471858;
+    let Y = r * 0.2581874 + g * 0.7249378 + b * 0.0168748;
+    let Z = r * 0.0000000 + g * 0.0517813 + b * 0.7734287;
+
+    return [X / (X + Y + Z), Y / (X + Y + Z)]
+}
+function xytorgb(x, y) {
+    let z = 1 - x - y;
+    let Y = 1;
+    let X = (Y / y) * x;
+    let Z = (Y / y) * z;
+
+    let r = X * 1.4628067 - Y * 0.1840623 - Z * 0.2743606;
+    let g = -X * 0.5217933 + Y * 1.4472381 + Z * 0.0677227;
+    let b = X * 0.0349342 - Y * 0.0968930 + Z * 1.2884099;
+
+    r = r <= 0.0031308 ? 12.92 * r : (1.0 + 0.055) * Math.pow(r, (1.0 / 2.4)) - 0.055;
+    g = g <= 0.0031308 ? 12.92 * g : (1.0 + 0.055) * Math.pow(g, (1.0 / 2.4)) - 0.055;
+    b = b <= 0.0031308 ? 12.92 * b : (1.0 + 0.055) * Math.pow(b, (1.0 / 2.4)) - 0.055
+
+    return [r, g, b]
+}
+
 function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 	let actual_intensities = new Array(28).fill().map(() => new Array());
 	let actual_colors = new Array(28).fill().map(() => new Array());
@@ -280,12 +514,11 @@ function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 		}
 		return -1;
 	}
-	console.log(find_next_levels());
 
 	const patch = [
 		13, 14, 15, 16, 17, 
-		31, 32, 33, 34, 35, 36, 
 		37, 38, 39, 40, 41, 42, 
+		31, 32, 33, 34, 35, 36, 
 		1, 2, 3, 5, 6, 7, 9, 10, 11, 
 		4, 8
 	];
@@ -294,9 +527,10 @@ function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 		track.forEach((intens, j) => {
 			const color = ncolors[i][j];
 			const rgb = [parseInt(color.substring(1, 3), 16), parseInt(color.substring(3, 5), 16), parseInt(color.substring(5), 16)];
-			const hsl = rgb2hsv(...rgb);
-			actual_intensities[i].push(hsl[2] * intens);
-			actual_colors[i].push([hsl[0], hsl[1]]);
+			const rgbil = rgb2rgbil(...rgb);
+			rgbil.push(rgb[0] / 255 * 100, rgb[1] / 255 * 100, rgb[2] / 255 * 100);
+			actual_intensities[i].push(intens * 100);
+			actual_colors[i].push(rgbil);
 		});
 	});
 	nstarts.forEach((start, i) => {
@@ -306,7 +540,7 @@ function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 	actual_numbers.forEach((number, i) => {
 		const description = actual_descriptions[i];
 		const time = actual_times[i].toString();
-		const follow = actual_follows[i].toString();
+		const follow = "F" + actual_follows[i].toString();
 		const target_row = ["1", "Cue", "1", number.toString(), "", "", description, time, "", "", "", "", "", "", "", "", "", time, "", "", "", "", "", follow, "", "", "", "", "", "", "", "", "", ""];
 		init_grid.splice(find_next_targets(), 0, target_row);
 
@@ -314,15 +548,24 @@ function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 			const intensity = Math.round(intens[i]);
 			const color = actual_colors[j][i];
 
-			const level_rows = [
+			let level_rows;
+
+			if (patch[j] <= 42 && patch[j] >= 31) level_rows = [
 				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "1", "Intens", intensity.toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "7", "Hue", Math.round(color[0]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "8", "Saturation", Math.round(color[1]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "17", "Cooling_Fan", "-3", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "21", "Strobe_Mode", "17", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "79", "Zoom", "13", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "204", "Shutter_Strobe", "0", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "12", "Red", Math.round(color[0]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "13", "Green", Math.round(color[1]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "14", "Blue", Math.round(color[2]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "50", "Indigo", Math.round(color[3]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "204", "Shutter_Strobe", "200", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "20675", "Lime", Math.round(color[4]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
 			];
+			else level_rows = [
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "1", "Intens", intensity.toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "12", "Red", Math.round(color[5]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "13", "Green", Math.round(color[6]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "14", "Blue", Math.round(color[7]).toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+				["1", "Cue", "1", number.toString(), "", patch[j].toString(), "204", "Shutter_Strobe", "-1", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+			]
 
 			init_grid.splice(find_next_levels(), 0, ...level_rows);
 		});
@@ -332,7 +575,6 @@ function buildCSV(ntracks, ncolors, nstarts, ntimes, nnumbers, ndescriptions) {
 		row = row.join();
 	});
 	let csv = init_grid.join("\r\n");
-	console.log(init_grid);
 	return csv;
 	
 }
@@ -348,13 +590,12 @@ function parseCSV(text) {
 
 	const patch = {
 		13: 0, 14: 1, 15: 2, 16: 3, 17: 4,
-		31: 5, 32: 6, 33: 7, 34: 8, 35: 9, 36: 10,
-		37: 11, 38: 12, 39: 13, 40: 14, 41: 15, 42: 16,
+		37: 5, 38: 6, 39: 7, 40: 8, 41: 9, 42: 10,
+		31: 11, 32: 12, 33: 13, 34: 14, 35: 15, 36: 16,
 		1: 17, 2: 18, 3: 19, 5: 20, 6: 21, 7: 22, 9: 23, 10: 24, 11: 25,
 		4: 26, 8: 27
 	};
 	const find_cue = (number) => {
-		console.log(nnumbers);
 		nnumbers.forEach((n, i) => {
 			if (number == n) return i; 
 		});
@@ -370,7 +611,7 @@ function parseCSV(text) {
 		if (d[0] == "START_TARGETS") target_start = i + 2;
 		if (d[0] == "END_TARGETS") target_end = i;
 	});
-	console.log(grid);
+	let current_cue_color = [];
 	for (let i = level_start; i < level_end; i++) {
 		const d = grid[i];
 		if (d[0] == "1" && d[1] == "Cue" && d[2] == "1") {
@@ -397,37 +638,60 @@ function parseCSV(text) {
 				ntracks[patched_channel][index] = parseInt(level);
 			}
 			
-			if (parameter_type == "7") {
-				usehsl[index].push(Math.round(parseInt(level)));
-			}
-			if (parameter_type == "8") {
-				usehsl[index].push(Math.round(parseInt(level)));
-				let rgb = HSLToRGB(usehsl[index][0], usehsl[index][1], Math.round(ntracks[patched_channel][index]/2));
-				let r = Math.round(rgb[0]).toString(16).padStart(2, '0');
-				let g = Math.round(rgb[1]).toString(16).padStart(2, '0');
-				let b = Math.round(rgb[2]).toString(16).padStart(2, '0');
-				let hex = "#" + r + g + b;
-				ncolors[patched_channel][index] = hex;
-			}
-			
-
-			const hex_value = Math.round(parseInt(level) * 255 / 100).toString(16).padStart(2, '0');
+			const ll = parseInt(level) / 100;
+			const hex_value = Math.round(ll * 255).toString(16).padStart(2, '0');
 			if (parameter_type == "12" && !(usehsl[index].length > 0)) {
+				current_cue_color.push(ll);
 				let color = ncolors[patched_channel][index].split("");
 				color.splice(1, 2, hex_value);
 				ncolors[patched_channel][index] = color.join("");
 			}
 			if (parameter_type == "13" && !(usehsl[index].length > 0)) {
+				current_cue_color.push(ll);
 				let color = ncolors[patched_channel][index].split("");
 				color.splice(3, 2, hex_value);
 				ncolors[patched_channel][index] = color.join("");
 			}
 			if (parameter_type == "14" && !(usehsl[index].length > 0)) {
+				current_cue_color.push(ll);
 				let color = ncolors[patched_channel][index].split("");
 				color.splice(5, 2, hex_value);
 				ncolors[patched_channel][index] = color.join("");
 			}
 
+			if (parameter_type == "50" && !(usehsl[index].length > 0)) {
+				current_cue_color.push(ll);
+			}
+			if (parameter_type == "20675" && !(usehsl[index].length > 0)) {
+				current_cue_color.push(ll);
+
+				let [cr, cg, cb, ci, cl] = current_cue_color;
+				[cr, cg, cb] = rgbil2rgb(cr, cg, cb, ci, cl);
+
+				console.log(cr, cg, cb, current_cue_color);
+				current_cue_color = [];
+
+
+				cr *= 255;
+				cg *= 255;
+				cb *= 255;
+
+				cr = Math.round(Math.min(cr, 255));
+				cg = Math.round(Math.min(cg, 255));
+				cb = Math.round(Math.min(cb, 255));
+
+				cr = Math.max(0, cr);
+				cg = Math.max(0, cg);
+				cb = Math.max(0, cb);
+
+				let rhex = cr.toString(16).padStart('0', 2),
+					ghex = cg.toString(16).padStart('0', 2),
+					bhex = cb.toString(16).padStart('0', 2);
+
+				console.log(rhex, ghex, bhex);
+
+				ncolors[patched_channel][index] = "#" + rhex + ghex + bhex;
+			}
 		}
 	}
 	let cumulative_timestamp = 0;
@@ -438,7 +702,7 @@ function parseCSV(text) {
 			const label = d[6];
 			const time_data = d[7];
 			const follow = d[23];
-			cumulative_timestamp += follow == "" ? 0 : parseFloat(follow);
+			cumulative_timestamp += follow == "" ? 0 : parseFloat(follow.substring(1));
 			
 			const index = nnumbers.findIndex((e) => e == target_id);
 			
@@ -460,7 +724,6 @@ function parseCSV(text) {
 	numbers = nnumbers;
 	descriptions = ndescriptions;
 	colors = ncolors;
-	console.log(ntracks, nstarts, ntimes, nnumbers, ndescriptions, ncolors);
 	rerender_timeline();
 }
 
@@ -540,6 +803,14 @@ function calculate_current_params() {
 	if (current_time >= interval_start_time && current_time < fade_end_time) {
 		proportion = (current_time - interval_start_time) / times[next_node];
 	}
+	let alphacomposite = (c1, c2, p) =>  {
+		const aa = 1 - p;
+		const ab = p;
+		
+		let a0 = aa + ab*ab
+		let c0 = (c1*aa+ c2*ab*ab) / a0;
+		return c0;
+	}
 	let intenss = [], colorss = []
 	for (let i = 0; i < tracks.length; i++) {
 		let last_intensity = 0;
@@ -552,11 +823,11 @@ function calculate_current_params() {
 		let c2 = colors[i][next_node];
 		let c1 = last_color;
 		let r2 = parseInt(c2.substring(1, 3), 16), g2 = parseInt(c2.substring(3, 5), 16), b2 = parseInt(c2.substring(5), 16);
-		[r2, g2, b2] = RGBToHSL(r2, g2, b2);
+		//[r2, g2, b2] = RGBToHSL(r2, g2, b2);
 		let r1 = parseInt(c1.substring(1, 3), 16), g1 = parseInt(c1.substring(3, 5), 16), b1 = parseInt(c1.substring(5), 16);
-		[r1, g1, b1] = RGBToHSL(r1, g1, b1);
-		let r = Math.round(r1 + (r2-r1)*proportion), g = Math.round(g1 + (g2-g1)*proportion), b = Math.round(b1 + (b2-b1)*proportion);
-		[r, g, b] = HSLToRGB(r, g, b);
+		//[r1, g1, b1] = RGBToHSL(r1, g1, b1);
+		let r = Math.round(alphacomposite(r1, r2, proportion)), g = Math.round(alphacomposite(g1, g2, proportion)), b = Math.round(alphacomposite(b1, b2, proportion));
+		//[r, g, b] = HSLToRGB(r, g, b);
 		colorss.push("#" + r.toString(16).padStart(2, "0") + g.toString(16).padStart(2, "0") + b.toString(16).padStart(2, "0"));
 	}
 	current_intensity = intenss;
@@ -792,7 +1063,6 @@ add_button.onclick = () => {
 			break
 		}
 	}
-	console.log(next_cue);
 	starts.splice(next_cue, 0, current_time);
 	times.splice(next_cue, 0, 0);
 	new_numbers = []
@@ -805,7 +1075,6 @@ add_button.onclick = () => {
 		tracks[i].splice(next_cue, 0, 0);
 		colors[i].splice(next_cue, 0, "#ffffff");
 	}
-	console.log(next_cue);
 	selected_node = next_cue;
 	rerender_timeline();
 }
@@ -893,7 +1162,6 @@ var temp_start, last_eligible_end;
 end_time_input.oninput = (evt) => {
 	last_eligible_end = starts[selected_node];
 	let new_time = handle_time_input(evt) 
-	console.log(new_time);	
 	temp_start = new_time;
 	if (check_end_eligibility(new_time)) {
 		last_eligible_end = new_time;	
@@ -911,7 +1179,6 @@ end_time_input.oninput = (evt) => {
 };
 end_time_input.onchange = (evt) => {
 	temp_start = last_eligible_end;
-	console.log(temp_start);
 	rerender_timeline();
 	end_time_input.setSelectionRange(4, 4);
 }
@@ -1127,6 +1394,7 @@ function open_editor(cue, update_end_time) {
 	if (all_colors_same[0]) color_inputs[0].value = colors[0][cue];
 	else color_inputs[0].value = "#ffffff";
 	intensity_inputs[0].onchange = () => {
+		console.log("")
 		for (let i = 0; i < 5; i++) { tracks[i][cue] = parseInt(intensity_inputs[0].value) / 100; }
 		rerender_timeline();
 	}
@@ -1209,7 +1477,7 @@ function autosort_cues() {
 		arr[index-1] = temp;
 		return arr;
 	}
-	let selected_cue = numbers[selected_node];
+	let selected_cue = [times[selected_node], starts[selected_node]];
 	for (let j = 0; j < starts.length; j++) {
 		for (let i = 1; i < starts.length; i++) {
 			if (starts[i] < starts[i-1]) {
@@ -1224,7 +1492,7 @@ function autosort_cues() {
 		}
 	}
 	for (let i = 0; i < numbers.length; i++) {
-		if (numbers[i] == selected_cue) {
+		if (times[i] == selected_cue[0] && starts[i] == selected_cue[1]) {
 			selected_node = i;
 		}
 	}
